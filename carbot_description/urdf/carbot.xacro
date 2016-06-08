@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<robot name="carbot" xmlns:xacro="http://wiki.ros.org/xacro">
+
+<xacro:macro name="box" params="name length width height mass">
+  <link name="${name}">
+    <!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="${length/2} ${width/2} ${height/2}"/>
+      </geometry>
+      <material name="${name}_gray">
+        <color rgba="0.5 0.5 0.5 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="${length/2} ${width/2} ${height/2}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${mass}"/>
+      <inertia
+          ixx="${mass / 12.0 * (width * width + height * height)" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (length * length + height * height)" iyz="0.0"
+          izz="${mass / 12.0 * (length * length + width * width)" />
+    </inertial>
+  </link>
+</xacro:macro>
+
+<!-- a wheel that rotates around the y axis, rolls forward toward the x axis -->
+<xacro:macro name="cylinder" params="name width height mass">
+  <link name="${name}">
+    <visual>
+      <!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+      <geometry>
+        <cylinder length="${width}" radius="${height/2}"/>
+      </geometry>
+      <material name="${name}_black">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+      <geometry>
+        <cylinder length="${width}" radius="${height/2}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+      <mass value="${mass}"/>
+      <inertia
+          ixx="${mass / 12.0 * (3/4 * height * length + width * width)" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (3/4 * height * length + width * width)" iyz="0.0"
+          izz="${mass / 12.0 * (3/4 * height * length + width * width)"/>
+    </inertial>
+  </link>
+</xacro:macro>
+
+
+  <xacro:box name="base_link" length="1.0" width="0.6" height="0.2" mass="1.0"/>
+  <xacro:cylinder name="wheel_front_left" width="0.15" height="0.4" mass="0.2"/>
+  <joint name="wheel_front_left_axle">
+    <parent link="base_link"/>
+    <child link="wheel_front_left"/>
+    <origin xyz="0.3 0.32 0" rpy="0 0 "/>
+    <axis xyz="0 1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <xacro:cylinder name="wheel_front_right" width="0.15" height="0.4" mass="0.2"/>
+  <joint name="wheel_front_right">
+    <parent link="base_link"/>
+    <child link="wheel_front_right"/>
+    <origin xyz="0.3 -0.32 0" rpy="0 0 "/>
+    <axis xyz="0 -1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <xacro:cylinder name="wheel_back_left" width="0.15" height="0.4" mass="0.2"/>
+  <joint name="wheel_back_left_axle">
+    <parent link="base_link"/>
+    <child link="wheel_back_left"/>
+    <origin xyz="-0.3 0.32 0" rpy="0 0 "/>
+    <axis xyz="0 1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <xacro:cylinder name="wheel_back_right" width="0.15" height="0.4" mass="0.2"/>
+  <joint name="wheel_back_right_axle">
+    <parent link="base_link"/>
+    <child link="wheel_back_right"/>
+    <origin xyz="-0.3 -0.32 0" rpy="0 0 "/>
+    <axis xyz="0 -1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+
+</robot>
