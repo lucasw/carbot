@@ -1,13 +1,20 @@
 <?xml version="1.0"?>
 <robot name="carbot" xmlns:xacro="http://wiki.ros.org/xacro">
 
-<xacro:macro name="box" params="name length width height mass">
+<xacro:property name="car_length" value="1.4"/>
+<xacro:property name="car_width" value="1.0"/>
+<xacro:property name="car_height" value="0.3"/>
+<xacro:property name="wheel_width" value="0.2"/>
+
+<!-- don't use macro names that are the same as other key names
+  like 'box', 'cylinder', etc. otherwise get Invalid parameter "size"
+-->
+<xacro:macro name="block" params="name length width height mass">
   <link name="${name}">
-    <!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+     <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="${length/2} ${width/2} ${height/2}"/>
+        <box size="${length} ${width} ${height}"/>
       </geometry>
       <material name="${name}_gray">
         <color rgba="0.5 0.5 0.5 1"/>
@@ -23,18 +30,18 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <mass value="${mass}"/>
       <inertia
-          ixx="${mass / 12.0 * (width * width + height * height)" ixy="0.0" ixz="0.0"
-          iyy="${mass / 12.0 * (length * length + height * height)" iyz="0.0"
-          izz="${mass / 12.0 * (length * length + width * width)" />
+          ixx="${mass / 12.0 * (width * width + height * height)}" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (length * length + height * height)}" iyz="0.0"
+          izz="${mass / 12.0 * (length * length + width * width)}" />
     </inertial>
   </link>
 </xacro:macro>
 
 <!-- a wheel that rotates around the y axis, rolls forward toward the x axis -->
-<xacro:macro name="cylinder" params="name width height mass">
+<!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
+<xacro:macro name="wheel" params="name width height mass">
   <link name="${name}">
     <visual>
-      <!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
       <geometry>
         <cylinder length="${width}" radius="${height/2}"/>
@@ -53,47 +60,47 @@
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
       <mass value="${mass}"/>
       <inertia
-          ixx="${mass / 12.0 * (3/4 * height * length + width * width)" ixy="0.0" ixz="0.0"
-          iyy="${mass / 12.0 * (3/4 * height * length + width * width)" iyz="0.0"
-          izz="${mass / 12.0 * (3/4 * height * length + width * width)"/>
+          ixx="${mass / 12.0 * (3/4 * height * height + width * width)}" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (3/4 * height * height + width * width)}" iyz="0.0"
+          izz="${mass / 12.0 * (3/4 * height * height + width * width)}"/>
     </inertial>
   </link>
 </xacro:macro>
 
-
-  <xacro:box name="base_link" length="1.0" width="0.6" height="0.2" mass="1.0"/>
-  <xacro:cylinder name="wheel_front_left" width="0.15" height="0.4" mass="0.2"/>
-  <joint name="wheel_front_left_axle">
+  <xacro:block name="base_link" length="${car_length}"
+      width="${car_width}" height="${car_height}" mass="1.0"/>
+  <xacro:wheel name="wheel_front_left" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_front_left_axle" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_front_left"/>
-    <origin xyz="0.3 0.32 0" rpy="0 0 "/>
+    <origin xyz="${car_length/2 - 0.05} ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <xacro:cylinder name="wheel_front_right" width="0.15" height="0.4" mass="0.2"/>
-  <joint name="wheel_front_right">
+  <xacro:wheel name="wheel_front_right" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_front_right" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_front_right"/>
-    <origin xyz="0.3 -0.32 0" rpy="0 0 "/>
+    <origin xyz="${car_length/2 - 0.05} ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
     <axis xyz="0 -1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <xacro:cylinder name="wheel_back_left" width="0.15" height="0.4" mass="0.2"/>
-  <joint name="wheel_back_left_axle">
+  <xacro:wheel name="wheel_back_left" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_back_left_axle" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_back_left"/>
-    <origin xyz="-0.3 0.32 0" rpy="0 0 "/>
+    <origin xyz="${-car_length/2 + 0.05} ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <xacro:cylinder name="wheel_back_right" width="0.15" height="0.4" mass="0.2"/>
-  <joint name="wheel_back_right_axle">
+  <xacro:wheel name="wheel_back_right" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_back_right_axle" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_back_right"/>
-    <origin xyz="-0.3 -0.32 0" rpy="0 0 "/>
+    <origin xyz="${-car_length/2 + 0.05} ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
     <axis xyz="0 -1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
