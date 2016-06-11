@@ -77,20 +77,38 @@
     <origin xyz="${car_length/2 - 0.05} 0 0" rpy="0 0 0"/>
   </joint>
 
+  <link name="front_left_steer"/>
+  <joint name="front_left_steer_joint" type="revolute">
+    <parent link="front_axle"/>
+    <child link="front_left_steer"/>
+    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+  </joint>
+
   <xacro:wheel name="wheel_front_left" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_front_left_axle" type="continuous">
-    <parent link="front_axle"/>
+    <parent link="front_left_steer"/>
     <child link="wheel_front_left"/>
-    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
+  <link name="front_right_steer"/>
+  <joint name="front_right_steer_joint" type="revolute">
+    <parent link="front_axle"/>
+    <child link="front_right_steer"/>
+    <origin xyz="0 ${-car_width/2 - wheel_width/2 - 0.1} 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+  </joint>
+
   <xacro:wheel name="wheel_front_right" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_front_right" type="continuous">
-    <parent link="front_axle"/>
+    <parent link="front_right_steer"/>
     <child link="wheel_front_right"/>
-    <origin xyz="0 ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
