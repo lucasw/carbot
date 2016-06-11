@@ -7,7 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /RobotModel1
+        - /PointStamped1
       Splitter Ratio: 0.652174
     Tree Height: 539
   - Class: rviz/Selection
@@ -55,7 +55,17 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        back_axle:
+          Value: true
         base_link:
+          Value: true
+        front_axle:
+          Value: true
+        front_left_steer:
+          Value: true
+        front_right_steer:
+          Value: true
+        front_steer:
           Value: true
         map:
           Value: true
@@ -75,6 +85,15 @@ Visualization Manager:
       Tree:
         map:
           base_link:
+            back_axle:
+              {}
+            front_axle:
+              front_left_steer:
+                {}
+              front_right_steer:
+                {}
+              front_steer:
+                {}
             wheel_back_left:
               {}
             wheel_back_right:
@@ -88,19 +107,68 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: true
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        back_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_back_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_back_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_front_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_front_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: /robot_description
       TF Prefix: ""
       Update Interval: 1
-      Value: false
+      Value: true
       Visual Enabled: true
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 0.5
+      Name: Steer
+      Radius: 0.1
+      Reference Frame: front_steer
+      Value: true
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: true
+      History Length: 1
+      Name: PointStamped
+      Radius: 0.2
+      Topic: /spin_center
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -125,7 +193,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.48971
+      Distance: 6.63929
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -137,10 +205,10 @@ Visualization Manager:
         Z: 0
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.624796
+      Pitch: 1.5348
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.79539
+      Yaw: 3.12538
     Saved: ~
 Window Geometry:
   Camera:
@@ -160,5 +228,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 884
-  X: 10
-  Y: 123
+  X: 362
+  Y: 115

@@ -77,6 +77,19 @@
     <origin xyz="${car_length/2 - 0.05} 0 0" rpy="0 0 0"/>
   </joint>
 
+  <!-- this is the virtual joint that represents the front of the bicycle
+    in the bicycle model, it will be controlled and the left and right
+    actual joints will respond to it appropriately to maintain a steer center
+    -->
+  <link name="front_steer"/>
+  <joint name="front_steer_joint" type="revolute">
+    <parent link="front_axle"/>
+    <child link="front_steer"/>
+    <origin xyz="0 0.5 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+  </joint>
+
   <link name="front_left_steer"/>
   <joint name="front_left_steer_joint" type="revolute">
     <parent link="front_axle"/>
