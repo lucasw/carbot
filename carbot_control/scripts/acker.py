@@ -86,16 +86,22 @@ class Acker():
         spin_center.header.stamp = msg.header.stamp
         spin_center.header.frame_id = self.back_axle_link
         self.point_pub.publish(spin_center)
-        return
 
         # TODO(lucasw) assume no rotation for now
         for i in range(len(self.steered)):
             joint = self.steered[i]['joint']
             link = self.steered[i]['link']
 
-            # TODO(lucasw) lookup the position of each link in the back axle frame
+            # lookup the position of each link in the back axle frame
             ts = self.tf_buffer.lookup_transform(self.back_axle_link, link,
                                                  msg.header.stamp, rospy.Duration(4.0))
+
+            dy = ts.transform.translation.y - spin_center.point.y
+            dx = ts.transform.translation.x - spin_center.point.x
+            angle = -math.atan2(dx, -dy)
+            # print link, angle, dx, dy
+            joint_states.name.append(joint)
+            joint_states.position.append(angle)
 
         self.joint_pub.publish(joint_states)
 
