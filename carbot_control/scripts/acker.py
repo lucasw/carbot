@@ -98,7 +98,10 @@ class Acker():
 
             dy = ts.transform.translation.y - spin_center.point.y
             dx = ts.transform.translation.x - spin_center.point.x
-            angle = -math.atan2(dx, -dy)
+            angle = math.atan2(dx, abs(dy))
+            if steer_angle < 0:
+                angle = -angle
+
             # print link, angle, dx, dy
             joint_states.name.append(joint)
             joint_states.position.append(angle)
