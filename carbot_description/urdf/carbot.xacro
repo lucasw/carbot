@@ -69,39 +69,54 @@
 
   <xacro:block name="base_link" length="${car_length}"
       width="${car_width}" height="${car_height}" mass="1.0"/>
+
+  <link name="front_axle"/>
+  <joint name="front_axle_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_axle"/>
+    <origin xyz="${car_length/2 - 0.05} 0 0" rpy="0 0 0"/>
+  </joint>
+
   <xacro:wheel name="wheel_front_left" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_front_left_axle" type="continuous">
-    <parent link="base_link"/>
+    <parent link="front_axle"/>
     <child link="wheel_front_left"/>
-    <origin xyz="${car_length/2 - 0.05} ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
+    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
   <xacro:wheel name="wheel_front_right" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_front_right" type="continuous">
-    <parent link="base_link"/>
+    <parent link="front_axle"/>
     <child link="wheel_front_right"/>
-    <origin xyz="${car_length/2 - 0.05} ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
-    <axis xyz="0 -1 0"/>
+    <origin xyz="0 ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <link name="back_axle"/>
+  <joint name="back_axle_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="back_axle"/>
+    <origin xyz="${-car_length/2 + 0.05} 0 0" rpy="0 0 0"/>
   </joint>
 
   <xacro:wheel name="wheel_back_left" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_back_left_axle" type="continuous">
-    <parent link="base_link"/>
+    <parent link="back_axle"/>
     <child link="wheel_back_left"/>
-    <origin xyz="${-car_length/2 + 0.05} ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
+    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
   <xacro:wheel name="wheel_back_right" width="${wheel_width}" height="0.4" mass="0.2"/>
   <joint name="wheel_back_right_axle" type="continuous">
-    <parent link="base_link"/>
+    <parent link="back_axle"/>
     <child link="wheel_back_right"/>
-    <origin xyz="${-car_length/2 + 0.05} ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
-    <axis xyz="0 -1 0"/>
+    <origin xyz="0 ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
