@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
+        - /RobotModel1
         - /Steer1
       Splitter Ratio: 0.652174
     Tree Height: 539
@@ -86,22 +87,19 @@ Visualization Manager:
         map:
           base_link:
             back_axle:
-              {}
+              wheel_back_left:
+                {}
+              wheel_back_right:
+                {}
             front_axle:
               front_left_steer:
-                {}
+                wheel_front_left:
+                  {}
               front_right_steer:
-                {}
+                wheel_front_right:
+                  {}
               front_steer:
                 {}
-            wheel_back_left:
-              {}
-            wheel_back_right:
-              {}
-            wheel_front_left:
-              {}
-            wheel_front_right:
-              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -117,7 +115,7 @@ Visualization Manager:
       Name: RobotModel
       Robot Description: /robot_description
       TF Prefix: ""
-      Update Interval: 1
+      Update Interval: 0.1
       Value: false
       Visual Enabled: true
     - Class: rviz/Axes
@@ -135,6 +133,15 @@ Visualization Manager:
       Name: PointStamped
       Radius: 0.2
       Topic: /spin_center
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /marker
+      Name: Wheel Trajectories
+      Namespaces:
+        front_left_steer: true
+        front_right_steer: true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -160,22 +167,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.27846
+      Distance: 9.69223
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.677074
-        Y: -1.03927
-        Z: -0.515427
+        X: 0.386885
+        Y: -0.0383926
+        Z: -0.547114
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.3448
+      Pitch: 1.4898
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.99037
+      Yaw: 3.11537
     Saved: ~
 Window Geometry:
   Camera:
@@ -195,5 +202,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1134
-  X: 283
-  Y: 17
+  X: 146
+  Y: 66

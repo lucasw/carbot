@@ -2,6 +2,7 @@
 # Copyright 2016 Lucas Walter
 
 import math
+import numpy
 import rospy
 import tf2_py as tf2
 import tf2_ros
@@ -33,7 +34,22 @@ class Acker():
         # TODO(lucasw) for now assume all the links have no rotation
         # with respect to each other, later do this robustly with tf lookups
 
-        # self.marker_pub = rospy.Publisher("marker", Marker, queue_size=3)
+        self.marker = Marker()
+        self.marker.id = 0
+        self.marker.type = Marker.LINE_STRIP
+        self.marker.frame_locked = True
+        self.marker.action = Marker.ADD
+        self.marker.header.frame_id = self.back_axle_link
+        self.marker.scale.x = 0.1
+        self.marker.scale.y = 0.1
+        self.marker.scale.z = 0.1
+        self.marker.color.r = 0.5
+        self.marker.color.g = 0.5
+        self.marker.color.b = 0.5
+        self.marker.color.a = 0.5
+        self.marker.pose.orientation.w = 1.0
+
+        self.marker_pub = rospy.Publisher("marker", Marker, queue_size=len(self.steered) * 2)
         self.point_pub = rospy.Publisher("spin_center", PointStamped, queue_size=1)
         self.joint_pub = rospy.Publisher("steered_joint_states", JointState, queue_size=1)
         self.steer = rospy.get_param("~steer", {'link': 'front_steer',
@@ -105,6 +121,22 @@ class Acker():
             # print link, angle, dx, dy
             joint_states.name.append(joint)
             joint_states.position.append(angle)
+
+            # visualize the trajectory forward or back of the current wheel
+            # given the spin center
+            radius = math.sqrt(dx * dx + dy * dy)
+            self.marker.points = []
+            for pt_angle in numpy.arange(abs(angle) - 1.0, abs(angle) + 1.0 + 0.025, 0.05):
+                pt = Point()
+                pt.x = spin_center.point.x + radius * math.sin(pt_angle)
+                if steer_angle < 0:
+                    pt.y = spin_center.point.y - radius * math.cos(pt_angle)
+                else:
+                    pt.y = spin_center.point.y + radius * math.cos(pt_angle)
+                self.marker.ns = link
+                self.marker.header.stamp = msg.header.stamp
+                self.marker.points.append(pt)
+            self.marker_pub.publish(self.marker)
 
         self.joint_pub.publish(joint_states)
 
