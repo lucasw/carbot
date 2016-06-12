@@ -20,6 +20,7 @@ class Acker():
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf = tf2_ros.TransformListener(self.tf_buffer)
+        self.br = tf2_ros.TransformBroadcaster()
 
         # get a dict of joints and their link locations
         # TODO(lucasw) need to know wheel radius to compute velocity
@@ -38,6 +39,7 @@ class Acker():
                                          'steer_joint': None,
                                          'wheel_joint': 'wheel_back_right_axle'}])
 
+        self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
         # use this to store all the positions persistently
         self.wheel_joint_states = JointState()
         for wheel in self.joints:
@@ -45,6 +47,15 @@ class Acker():
             self.wheel_joint_states.name.append(wheel['wheel_joint'])
             self.wheel_joint_states.position.append(0.0)
             self.wheel_joint_states.velocity.append(0.0)
+
+        # TODO(lwalter) initialize the current position from
+        # another source
+        self.ts = TransformStamped()
+        self.ts.header.frame_id = "map"
+        self.ts.child_frame_id = "base_link"
+        self.ts.transform.rotation.w = 1.0
+        # the angle of the base_link
+        self.angle = 0
 
         # the fixed back axle- all the fixed wheels rotate around the y-axis
         # of the back axle
@@ -81,6 +92,7 @@ class Acker():
     def update(self, event):
         pass
 
+    # get the angle to to the wheel from the spin center
     def get_angle(self, link, spin_center, steer_angle, stamp):
         # lookup the position of each link in the back axle frame
         ts = self.tf_buffer.lookup_transform(self.back_axle_link, link,
@@ -184,6 +196,30 @@ class Acker():
             # to be scaled by different in distance to spin center
             self.wheel_joint_states.position[ind] += angular_velocity * fr * dt
             self.wheel_joint_states.velocity[ind] = angular_velocity * fr
+
+        # update odometry
+        # There may be another odometric frame in the future, base off
+        # actual encoder values rather than desired
+        angle, radius = self.get_angle("base_link", spin_center,
+                                       steer_angle, msg.header.stamp)
+        fr = radius / lead_radius
+        # distance travelled along the radial path
+        distance = angular_velocity * fr * dt
+        angle_traveled = distance / radius
+        if steer_angle > 0:
+            self.angle += angle_traveled
+        else:
+            self.angle -= angle_traveled
+        # the distance travelled in the current frame:
+        # x = R sin angle_traveled
+        # y = R (1 - cos angle_traveled)
+        # then need to rotate x and y by self.angle
+        # (use a 2d rotation matrix)
+        # then can add the rotated x and y to self.ts.transform.translation
+
+        self.ts.header.stamp = msg.header.stamp
+        # convert self.angle to quaternion
+        self.br.sendTransform(self.ts)
 
         self.joint_pub.publish(joint_states)
         self.wheel_joint_states.header = joint_states.header

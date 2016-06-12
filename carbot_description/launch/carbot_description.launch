@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="use_rviz" default="false"/>
+  <arg name="use_static_tf" default="false"/>
 
   <param name="robot_description"
     command="$(find xacro)/xacro --inorder '$(find carbot_description)/urdf/carbot.xacro'"/>
@@ -20,6 +21,7 @@
       if="$(arg use_rviz)"
       args="-d $(find carbot_description)/config/carbot.rviz"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher"
+  <node if="$(arg use_static_tf)"
+      pkg="tf" type="static_transform_publisher" name="static_transform_publisher"
       args="0 0 0.2 0 0 0 map base_link 30"/>
 </launch>

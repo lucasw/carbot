@@ -6,11 +6,11 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1/Status1
         - /TF1/Frames1
-        - /RobotModel1
         - /Steer1
       Splitter Ratio: 0.652174
-    Tree Height: 539
+    Tree Height: 345
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -58,6 +58,10 @@ Visualization Manager:
         All Enabled: false
         back_axle:
           Value: true
+        back_left:
+          Value: true
+        back_right:
+          Value: true
         base_link:
           Value: true
         front_axle:
@@ -91,10 +95,12 @@ Visualization Manager:
         map:
           base_link:
             back_axle:
-              wheel_back_left:
-                {}
-              wheel_back_right:
-                {}
+              back_left:
+                wheel_back_left:
+                  {}
+              back_right:
+                wheel_back_right:
+                  {}
             front_axle:
               front_left_steer:
                 wheel_front_left:
@@ -102,8 +108,6 @@ Visualization Manager:
               front_right_steer:
                 wheel_front_right:
                   {}
-              front_steer:
-                {}
               lead_steer:
                 wheel_lead:
                   {}
@@ -112,26 +116,83 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: true
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        back_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        back_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        back_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_left_steer:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_right_steer:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        lead_steer:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_back_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_back_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_front_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_front_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_lead:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: /robot_description
       TF Prefix: ""
-      Update Interval: 0.1
-      Value: false
+      Update Interval: 0.05
+      Value: true
       Visual Enabled: true
     - Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.5
       Name: Steer
       Radius: 0.1
       Reference Frame: lead_steer
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/PointStamped
       Color: 204; 41; 204
@@ -146,10 +207,31 @@ Visualization Manager:
       Marker Topic: /marker
       Name: Wheel Trajectories
       Namespaces:
+        back_left: true
+        back_right: true
         front_left_steer: true
         front_right_steer: true
+        lead_steer: true
       Queue Size: 100
       Value: true
+    - Class: rviz/Camera
+      Enabled: true
+      Image Rendering: background and overlay
+      Image Topic: ""
+      Name: Camera
+      Overlay Alpha: 0.5
+      Queue Size: 2
+      Transport Hint: raw
+      Value: true
+      Visibility:
+        Grid: true
+        PointStamped: true
+        RobotModel: true
+        Steer: true
+        TF: true
+        Value: true
+        Wheel Trajectories: true
+      Zoom Factor: 1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -174,22 +256,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.93741
+      Distance: 3.83302
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.723217
-        Y: -0.578004
-        Z: -0.155093
+        X: 0.131765
+        Y: -0.128825
+        Z: 0.373376
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.829797
+      Pitch: 1.4948
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.18036
+      Yaw: 3.22217
     Saved: ~
 Window Geometry:
   Camera:
@@ -199,7 +281,7 @@ Window Geometry:
   Height: 845
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000015b000002aafc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000041000002aa000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d0065007200610000000000ffffffff0000001600000016000000010000010f000002abfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000041000002ab000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000046e0000003efc0100000002fb0000000800540069006d006501000000000000046e000002f600fffffffb0000000800540069006d006501000000000000045000000000000000000000030d000002aa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000015b000002aafc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000041000001e8000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d0065007200610000000000ffffffff0000001600000016fb0000000c00430061006d006500720061010000022f000000bc0000001600ffffff000000010000010f000002abfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000041000002ab000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000046e0000003efc0100000002fb0000000800540069006d006501000000000000046e000002f600fffffffb0000000800540069006d006501000000000000045000000000000000000000030d000002aa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -209,5 +291,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1134
-  X: 144
-  Y: 61
+  X: 18
+  Y: 34
