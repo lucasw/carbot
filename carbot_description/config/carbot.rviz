@@ -68,6 +68,8 @@ Visualization Manager:
           Value: true
         front_steer:
           Value: true
+        lead_steer:
+          Value: true
         map:
           Value: true
         wheel_back_left:
@@ -77,6 +79,8 @@ Visualization Manager:
         wheel_front_left:
           Value: true
         wheel_front_right:
+          Value: true
+        wheel_lead:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -100,6 +104,9 @@ Visualization Manager:
                   {}
               front_steer:
                 {}
+              lead_steer:
+                wheel_lead:
+                  {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -123,7 +130,7 @@ Visualization Manager:
       Length: 0.5
       Name: Steer
       Radius: 0.1
-      Reference Frame: front_steer
+      Reference Frame: lead_steer
       Value: true
     - Alpha: 1
       Class: rviz/PointStamped
@@ -167,22 +174,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.69223
+      Distance: 2.93741
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.386885
-        Y: -0.0383926
-        Z: -0.547114
+        X: 0.723217
+        Y: -0.578004
+        Z: -0.155093
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.4898
+      Pitch: 0.829797
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.11537
+      Yaw: 6.18036
     Saved: ~
 Window Geometry:
   Camera:
@@ -202,5 +209,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1134
-  X: 146
-  Y: 66
+  X: 144
+  Y: 61
