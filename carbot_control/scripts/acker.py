@@ -24,22 +24,23 @@ class Acker():
         # get a dict of joints and their link locations
         # TODO(lucasw) need to know wheel radius to compute velocity
         # correctly, for now assume all wheels are same radius
-        self.steered = rospy.get_param("~steered_joints",
+        self.joints = rospy.get_param("~steered_joints",
                                        [{'link': 'front_left_steer',
-                                         'joint': 'front_left_steer_joint',
+                                         'steer_joint': 'front_left_steer_joint',
                                          'wheel_joint': 'wheel_front_left_axle'},
                                         {'link': 'front_right_steer',
-                                         'joint': 'front_right_steer_joint',
-                                         'wheel_joint': 'wheel_front_right_axle'}])
-        self.unsteered = rospy.get_param("~unsteered_joints",
-                                         [{'link': 'back_left',
-                                           'wheel_joint': 'wheel_back_left_axle'},
-                                          {'link': 'back_right',
-                                           'wheel_joint': 'wheel_back_left_axle'}])
+                                         'steer_joint': 'front_right_steer_joint',
+                                         'wheel_joint': 'wheel_front_right_axle'},
+                                        {'link': 'back_left',
+                                         'steer_joint': None,
+                                         'wheel_joint': 'wheel_back_left_axle'},
+                                        {'link': 'back_right',
+                                         'steer_joint': None,
+                                         'wheel_joint': 'wheel_back_right_axle'}])
 
         # use this to store all the positions persistently
         self.wheel_joint_states = JointState()
-        for wheel in self.steered:
+        for wheel in self.joints:
             # TODO(lucasw) read the current angle to initialize
             self.wheel_joint_states.name.append(wheel['wheel_joint'])
             self.wheel_joint_states.position.append(0.0)
@@ -66,7 +67,7 @@ class Acker():
         self.marker.color.a = 0.5
         self.marker.pose.orientation.w = 1.0
 
-        self.marker_pub = rospy.Publisher("marker", Marker, queue_size=len(self.steered) * 2)
+        self.marker_pub = rospy.Publisher("marker", Marker, queue_size=len(self.joints) * 2)
         self.point_pub = rospy.Publisher("spin_center", PointStamped, queue_size=1)
         self.joint_pub = rospy.Publisher("steered_joint_states", JointState, queue_size=3)
         self.steer = rospy.get_param("~steer", {'link': 'lead_steer',
@@ -106,7 +107,7 @@ class Acker():
             self.marker.header.stamp = stamp
             self.marker.points.append(pt)
         self.marker_pub.publish(self.marker)
-        return angle
+        return angle, radius
 
     def steer_callback(self, msg):
         if self.steer['joint'] not in msg.name:
@@ -135,8 +136,10 @@ class Acker():
         if steer_angle == 0.0:
             # TODO(lucasw) assume no rotation of link holding this joint
             # with respect to the back axle link
-            for i in range(len(self.steered)):
-                joint = self.steered[i]['joint']
+            for i in range(len(self.joints)):
+                joint = self.joints[i]['steer_joint']
+                if joint is None:
+                    continue
                 joint_states.name.append(joint)
                 joint_states.position.append(steer_angle)
                 # joint_states.velocity.append(steer_velocity)
@@ -159,30 +162,28 @@ class Acker():
         spin_center.header.frame_id = self.back_axle_link
         self.point_pub.publish(spin_center)
 
+        angle, lead_radius = self.get_angle(self.steer['link'], spin_center,
+                                       steer_angle, msg.header.stamp)
         # TODO(lucasw) assume no rotation for now
         # TODO(lucasw)
-        for i in range(len(self.steered)):
-            joint = self.steered[i]['joint']
-            link = self.steered[i]['link']
+        for i in range(len(self.joints)):
+            joint = self.joints[i]['steer_joint']
+            link = self.joints[i]['link']
 
-            angle = self.get_angle(link, spin_center, steer_angle, msg.header.stamp)
+            angle, radius = self.get_angle(link, spin_center, steer_angle, msg.header.stamp)
+            fr = radius / lead_radius
 
             # print link, angle, dx, dy
-            joint_states.name.append(joint)
-            joint_states.position.append(angle)
+            if joint is not None:
+                joint_states.name.append(joint)
+                joint_states.position.append(angle)
 
-            wheel_joint = self.steered[i]['wheel_joint']
+            wheel_joint = self.joints[i]['wheel_joint']
             ind = self.wheel_joint_states.name.index(wheel_joint)
             # TODO(lucasw) angular_velocity for this joint needs
             # to be scaled by different in distance to spin center
-            self.wheel_joint_states.position[ind] += angular_velocity * dt
-            self.wheel_joint_states.velocity[ind] = angular_velocity
-
-        for i in range(len(self.unsteered)):
-            link = self.unsteered[i]['link']
-            self.get_angle(link, spin_center, steer_angle, msg.header.stamp)
-
-        self.get_angle(self.steer['link'], spin_center, steer_angle, msg.header.stamp)
+            self.wheel_joint_states.position[ind] += angular_velocity * fr * dt
+            self.wheel_joint_states.velocity[ind] = angular_velocity * fr
 
         self.joint_pub.publish(joint_states)
         self.wheel_joint_states.header = joint_states.header
