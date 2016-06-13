@@ -205,7 +205,7 @@ class Acker():
                                        steer_angle, msg.header.stamp)
         fr = radius / lead_radius
         # distance travelled along the radial path
-        distance = angular_velocity * fr * dt
+        distance = self.wheel_radius * angular_velocity * fr * dt
         angle_traveled = distance / radius
         if steer_angle > 0:
             self.angle += angle_traveled
