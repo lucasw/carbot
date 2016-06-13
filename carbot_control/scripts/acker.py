@@ -9,6 +9,7 @@ import tf2_ros
 
 from geometry_msgs.msg import Point, PointStamped, TransformStamped
 from sensor_msgs.msg import JointState
+from tf import transformations
 from visualization_msgs.msg import Marker
 
 
@@ -211,11 +212,24 @@ class Acker():
         else:
             self.angle -= angle_traveled
         # the distance travelled in the current frame:
-        # x = R sin angle_traveled
-        # y = R (1 - cos angle_traveled)
+        dx_in_ts = radius * math.sin(angle_traveled)
+        dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
+        ca = math.cos(self.angle)
+        sa = math.sin(self.angle)
+        dx_in_parent = ca * dx_in_ts + sa * dy_in_ts
+        dy_in_parent = -sa * dx_in_ts + ca * dy_in_ts
         # then need to rotate x and y by self.angle
         # (use a 2d rotation matrix)
         # then can add the rotated x and y to self.ts.transform.translation
+        self.ts.transform.translation.x += dx_in_parent
+        self.ts.transform.translation.y += dy_in_parent
+
+        # set the quaternion to current angle
+        quat = transformations.quaternion_from_euler(0, 0, -self.angle)
+        self.ts.transform.rotation.x = quat[0]
+        self.ts.transform.rotation.y = quat[1]
+        self.ts.transform.rotation.z = quat[2]
+        self.ts.transform.rotation.w = quat[3]
 
         self.ts.header.stamp = msg.header.stamp
         # convert self.angle to quaternion
