@@ -96,7 +96,7 @@ class Acker():
     # get the angle to to the wheel from the spin center
     def get_angle(self, link, spin_center, steer_angle, stamp):
         # lookup the position of each link in the back axle frame
-        ts = self.tf_buffer.lookup_transform(self.back_axle_link, link,
+        ts = self.tf_buffer.lookup_transform(spin_center.header.frame_id, link,
                                              stamp, rospy.Duration(4.0))
 
         dy = ts.transform.translation.y - spin_center.point.y
@@ -139,7 +139,7 @@ class Acker():
         steer_ind = msg.name.index(self.steer['joint'])
         steer_angle = msg.position[steer_ind]
         # TODO(lucasw) use the wheel_lead angle as a velocity right now
-        angular_velocity = msg.position[msg.name.index(self.steer['wheel_joint'])]
+        lead_wheel_angular_velocity = msg.position[msg.name.index(self.steer['wheel_joint'])]
         # steer_velocity = msg.velocity[steer_ind]
         # steer_effort = msg.effort[steer_ind]
 
@@ -193,10 +193,10 @@ class Acker():
 
             wheel_joint = self.joints[i]['wheel_joint']
             ind = self.wheel_joint_states.name.index(wheel_joint)
-            # TODO(lucasw) angular_velocity for this joint needs
+            # TODO(lucasw) lead_wheel_angular_velocity for this joint needs
             # to be scaled by different in distance to spin center
-            self.wheel_joint_states.position[ind] += angular_velocity * fr * dt
-            self.wheel_joint_states.velocity[ind] = angular_velocity * fr
+            self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * fr * dt
+            self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity * fr
 
         # update odometry
         # There may be another odometric frame in the future, base off
@@ -205,7 +205,7 @@ class Acker():
                                        steer_angle, msg.header.stamp)
         fr = radius / lead_radius
         # distance travelled along the radial path
-        distance = self.wheel_radius * angular_velocity * fr * dt
+        distance = self.wheel_radius * lead_wheel_angular_velocity * fr * dt
         angle_traveled = distance / radius
         if steer_angle > 0:
             self.angle += angle_traveled
@@ -214,8 +214,8 @@ class Acker():
         # the distance travelled in the current frame:
         dx_in_ts = radius * math.sin(angle_traveled)
         dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
-        ca = math.cos(self.angle)
-        sa = math.sin(self.angle)
+        ca = math.cos(self.angle + angle)
+        sa = math.sin(self.angle + angle)
         dx_in_parent = ca * dx_in_ts + sa * dy_in_ts
         dy_in_parent = -sa * dx_in_ts + ca * dy_in_ts
         # then need to rotate x and y by self.angle
