@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="use_rviz" default="false"/>
-  <arg name="use_static_tf" default="false"/>
+  <arg name="use_joint_gui" default="true"/>
+  <arg name="use_static_tf" default="true"/>
 
   <param name="robot_description"
     command="$(find xacro)/xacro --inorder '$(find carbot_description)/urdf/carbot.xacro'"/>
 
   <node name="joint_state_publisher" pkg="joint_state_publisher"
       type="joint_state_publisher">
-    <param name="use_gui" value="true"/>
+    <param name="use_gui" value="$(arg use_joint_gui)"/>
     <rosparam param="source_list">
       ["steered_joint_states"]
     </rosparam>

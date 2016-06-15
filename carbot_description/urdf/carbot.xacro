@@ -5,6 +5,11 @@
 <xacro:property name="car_width" value="1.0"/>
 <xacro:property name="car_height" value="0.3"/>
 <xacro:property name="wheel_width" value="0.2"/>
+<!-- TODO(lwalter) pass these in as args -->
+<!-- turning to left -->
+<xacro:property name="min_steer" value="-0.7"/>
+<!-- turning to right -->
+<xacro:property name="max_steer" value="0.7"/>
 
 <!-- don't use macro names that are the same as other key names
   like 'box', 'cylinder', etc. otherwise get Invalid parameter "size"
@@ -92,7 +97,7 @@
     <child link="lead_steer"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 -1"/>
-    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
   </joint>
   <!-- virtual wheel that will represent the desired velocity
     of the vehicle (so need radius encoded in it also) -->
@@ -105,7 +110,6 @@
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-
   <!-- front left -->
   <link name="front_left_steer"/>
   <joint name="front_left_steer_joint" type="revolute">
@@ -113,7 +117,7 @@
     <child link="front_left_steer"/>
     <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 0 -1"/>
-    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
   </joint>
 
   <xacro:wheel name="wheel_front_left" width="${wheel_width}" height="0.4" mass="0.2"/>
@@ -132,7 +136,7 @@
     <child link="front_right_steer"/>
     <origin xyz="0 ${-car_width/2 - wheel_width/2 - 0.1} 0" rpy="0 0 0"/>
     <axis xyz="0 0 -1"/>
-    <limit effort="1000.0" upper="0.7" lower="-0.7" velocity="0.5"/>
+    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
   </joint>
 
   <xacro:wheel name="wheel_front_right" width="${wheel_width}" height="0.4" mass="0.2"/>

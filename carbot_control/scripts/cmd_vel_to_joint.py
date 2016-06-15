@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
 from tf import transformations
 
+
 # TODO(lucasw) put this in a module and import it
 # get the angle to to the wheel from the spin center
 def get_angle(self, tf_buffer, link, spin_center, steer_angle, stamp):
@@ -40,6 +41,10 @@ class CmdVelToJoint():
 
         self.steer_link = rospy.get_param("~steer_link", "lead_steer")
         self.steer_joint = rospy.get_param("~steer_joint", "lead_steer_joint")
+        # +/- this angle
+        self.min_steer_angle = rospy.get_param("~min_steer_angle", -0.7)
+        self.max_steer_angle = rospy.get_param("~max_steer_angle", 0.7)
+
         self.wheel_joint = rospy.get_param("~wheel_joint", "wheel_lead_axle")
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
         # the spin center is always on the fixed axle y axis of the fixed axle,
@@ -75,14 +80,25 @@ class CmdVelToJoint():
         joint_state.header.stamp = steer_transform.header.stamp
         # if the cmd_vel is pure linear x, then the joint state is at zero
         # steer angle (no skid steering modelled).
+        wheel_angular_velocity = 0
         if msg.linear.y == 0.0:
             self.joint_state.position[0] = 0.0
             self.joint_state.velocity[0] = 0.0
             wheel_angular_velocity = msg.linear.x / self.wheel_radius
-            # TODO(lucasw) assuming fixed period for now, could
-            # measure actual dt with event parameter.
-            self.joint_state.position[1] += wheel_angular_velocity * self.period
-            self.joint_state.velocity[1] = wheel_angular_velocity
+        elif msg.linear.x == 0.0:
+            # TODO(lucasw) what to do here?
+            # Could do nothing, but that doesn't reflect the intent of the cmd_vel
+            # source - next best thing may be to set the steer angle to
+            # the maximum (which needs to be given to this node).
+
+            # if the robot was near an obstacle this strategy doesn't work at all
+            # so need to be able to select it with a mode.
+            wheel_angular_velocity = msg.linear.y / self.wheel_radius
+            if msg.linear.y > 0:
+                self.joint_state.position[0] = self.min_steer_angle
+            else:
+                self.joint_state.position[0] = self.max_steer_angle
+            self.joint_state.velocity[0] = 0.0
         else:
             # need to calculate the steer angle
             # from the ratio of linear.y to linear.x
@@ -98,7 +114,19 @@ class CmdVelToJoint():
             # dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
             # dy_in_ts/dx_in_ts = msg.linear.y / msg.linear.x
             # and then work backwards from above to get to lead_wheel_angular_velocity
-            # TODO(lucasw) is lead_wheel_angular_velocity linear.x**2 + linear.y**2?
+            # TODO(lucasw) is lead_wheel_angular_velocity linear.x**2 + linear.y**2 ?
+            # velocity_ratio = msg.linear.y / msg.linear.x 
+            # velocity_ratio = sin(angle_traveled) / (1.0 - cos(angle_traveled))
+            # velocity_ratio * (1.0 - cos(angle_traveled)) = sin(angle_traveled)
+            # velocity_ratio - velocity_ratio * cos(angle_traveled) = sin(angle_traveled) 
+            # velocity_ratio = sin(angle_traveled) + velocity_ratio * cos(angle_traveled)
+            # velocity_ratio = sqrt(1 - cos^2(angle_traveled)) + velocity_ratio * cos(angle_traveled)
+
+
+        # TODO(lucasw) assuming fixed period for now, could
+        # measure actual dt with event parameter.
+        self.joint_state.position[1] += wheel_angular_velocity * self.period
+        self.joint_state.velocity[1] = wheel_angular_velocity
 
         self.steer_pub.publish(joint_state)
 

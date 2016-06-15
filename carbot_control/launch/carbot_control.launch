@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find carbot_description)/launch/carbot_description.launch">
+    <arg name="use_static_tf" value="false"/>
+    <arg name="use_joint_gui" value="false"/>
+  </include>
+
+  <node pkg="carbot_control" type="acker.py"
+    name="acker">
+  </node>
+
+  <node pkg="carbot_control" type="cmd_vel_to_joint.py"
+    name="cmd_vel_to_joint">
+  </node>
+</launch>
