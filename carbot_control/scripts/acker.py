@@ -24,7 +24,7 @@ class Acker():
         self.br = tf2_ros.TransformBroadcaster()
 
         # get a dict of joints and their link locations
-        # TODO(lucasw) need to know wheel radius to compute velocity
+        # TODO(lucasw) need to know per wheel radius to compute velocity
         # correctly, for now assume all wheels are same radius
         self.joints = rospy.get_param("~steered_joints",
                                        [{'link': 'front_left_steer',
@@ -85,6 +85,9 @@ class Acker():
         self.steer = rospy.get_param("~steer", {'link': 'lead_steer',
                                                 'joint': 'lead_steer_joint',
                                                 'wheel_joint': 'wheel_lead_axle'})
+        # TODO(lwalter) circular publisher here- the steer command is on
+        # joint_states, then published onto steered_joint_states, which updates
+        # joint_states- but the joints are different.
         self.joint_sub = rospy.Subscriber("joint_states", JointState,
                                           self.steer_callback, queue_size=4)
 
@@ -145,7 +148,10 @@ class Acker():
 
         joint_states = JointState()
         joint_states.header = msg.header
+        self.wheel_joint_states.header = msg.header
 
+        # TODO(lucaw) possibly eliminate this pathway and have
+        # special case code below to mix in this special case.
         if steer_angle == 0.0:
             # TODO(lucasw) assume no rotation of link holding this joint
             # with respect to the back axle link
@@ -157,7 +163,34 @@ class Acker():
                 joint_states.position.append(steer_angle)
                 # joint_states.velocity.append(steer_velocity)
                 # joint_states.effort.append(steer_effort)
+
+                wheel_joint = self.joints[i]['wheel_joint']
+                ind = self.wheel_joint_states.name.index(wheel_joint)
+                # TODO(lucasw) this assumes all wheels have the same radius
+                self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * dt
+                self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity
+
             self.joint_pub.publish(joint_states)
+            self.joint_pub.publish(self.wheel_joint_states)
+
+            # upate odometry
+            # TODO(lucasw) this doesn't model skid steering at all, it assume an
+            # off-axis wheel driving forward will drive the robot forward because
+            # all the wheels balance.
+            distance = self.wheel_radius * lead_wheel_angular_velocity * dt
+            self.ts.transform.translation.x += distance * math.cos(self.angle)
+            self.ts.transform.translation.y += distance * math.sin(-self.angle)
+
+            # set the quaternion to current angle
+            quat = transformations.quaternion_from_euler(0, 0, -self.angle)
+            self.ts.transform.rotation.x = quat[0]
+            self.ts.transform.rotation.y = quat[1]
+            self.ts.transform.rotation.z = quat[2]
+            self.ts.transform.rotation.w = quat[3]
+
+            self.ts.header.stamp = msg.header.stamp
+            # convert self.angle to quaternion
+            self.br.sendTransform(self.ts)
             return
 
         # find spin center given steer joint
@@ -176,8 +209,9 @@ class Acker():
         self.point_pub.publish(spin_center)
 
         angle, lead_radius = self.get_angle(self.steer['link'], spin_center,
-                                       steer_angle, msg.header.stamp)
-        # TODO(lucasw) assume no rotation for now
+                                            steer_angle, msg.header.stamp)
+        # TODO(lucasw) assume no rotation for now- zero steer angle
+        # means the steer joint is aligned with x axis of the robot
         # TODO(lucasw)
         for i in range(len(self.joints)):
             joint = self.joints[i]['steer_joint']
@@ -199,19 +233,19 @@ class Acker():
             self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity * fr
 
         # update odometry
-        # There may be another odometric frame in the future, base off
+        # There may be another odometric frame in the future, based off
         # actual encoder values rather than desired
         angle, radius = self.get_angle("base_link", spin_center,
                                        steer_angle, msg.header.stamp)
         fr = radius / lead_radius
-        # distance travelled along the radial path
+        # distance traveled along the radial path in base_link
         distance = self.wheel_radius * lead_wheel_angular_velocity * fr * dt
         angle_traveled = distance / radius
         if steer_angle > 0:
             self.angle += angle_traveled
         else:
             self.angle -= angle_traveled
-        # the distance travelled in the current frame:
+        # the distance traveled in the base_link frame:
         dx_in_ts = radius * math.sin(angle_traveled)
         dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
         ca = math.cos(self.angle + angle)
@@ -236,7 +270,6 @@ class Acker():
         self.br.sendTransform(self.ts)
 
         self.joint_pub.publish(joint_states)
-        self.wheel_joint_states.header = joint_states.header
         self.joint_pub.publish(self.wheel_joint_states)
 
 if __name__ == '__main__':
