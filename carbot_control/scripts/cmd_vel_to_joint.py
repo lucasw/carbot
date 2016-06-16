@@ -7,28 +7,12 @@
 
 import math
 import rospy
+import tf2_py as tf2
+import tf2_ros
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
-from tf import transformations
-
-
-# TODO(lucasw) put this in a module and import it
-# get the angle to to the wheel from the spin center
-def get_angle(self, tf_buffer, link, spin_center, steer_angle, stamp):
-    # lookup the position of each link in the back axle frame
-    ts = tf_buffer.lookup_transform(spin_center.header.frame_id, link,
-                                    stamp, rospy.Duration(4.0))
-
-    dy = ts.transform.translation.y - spin_center.point.y
-    dx = ts.transform.translation.x - spin_center.point.x
-    angle = math.atan2(dx, abs(dy))
-    if steer_angle < 0:
-        angle = -angle
-
-    # visualize the trajectory forward or back of the current wheel
-    # given the spin center
-    radius = math.sqrt(dx * dx + dy * dy)
+# from tf import transformations
 
 
 class CmdVelToJoint():
@@ -52,7 +36,7 @@ class CmdVelToJoint():
         # at zero rotation with respect to fixed axle x axis (or xz plane)
         self.fixed_axle_link = rospy.get_param("~fixed_axle_link", "back_axle")
 
-        self.steer_pub = rospy.Publisher("joint_states", JointState, queue_size=1)
+        self.steer_pub = rospy.Publisher("steer_joint_states", JointState, queue_size=1)
         # TODO(lucasw) is there a way to get TwistStamped out of standard
         # move_base publishers?
         self.joint_state = JointState()
@@ -77,15 +61,15 @@ class CmdVelToJoint():
                                                           self.steer_link,
                                                           rospy.Time(),
                                                           rospy.Duration(4.0))
-        joint_state.header.stamp = steer_transform.header.stamp
+        self.joint_state.header.stamp = steer_transform.header.stamp
         # if the cmd_vel is pure linear x, then the joint state is at zero
         # steer angle (no skid steering modelled).
         wheel_angular_velocity = 0
-        if msg.linear.y == 0.0:
+        if self.cmd_vel.linear.y == 0.0:
             self.joint_state.position[0] = 0.0
             self.joint_state.velocity[0] = 0.0
-            wheel_angular_velocity = msg.linear.x / self.wheel_radius
-        elif msg.linear.x == 0.0:
+            wheel_angular_velocity = self.cmd_vel.linear.x / self.wheel_radius
+        elif self.cmd_vel.linear.x == 0.0:
             # TODO(lucasw) what to do here?
             # Could do nothing, but that doesn't reflect the intent of the cmd_vel
             # source - next best thing may be to set the steer angle to
@@ -93,42 +77,37 @@ class CmdVelToJoint():
 
             # if the robot was near an obstacle this strategy doesn't work at all
             # so need to be able to select it with a mode.
-            wheel_angular_velocity = msg.linear.y / self.wheel_radius
-            if msg.linear.y > 0:
+            wheel_angular_velocity = self.cmd_vel.linear.y / self.wheel_radius
+            if self.cmd_vel.linear.y > 0:
                 self.joint_state.position[0] = self.min_steer_angle
             else:
                 self.joint_state.position[0] = self.max_steer_angle
             self.joint_state.velocity[0] = 0.0
         else:
             # need to calculate the steer angle
-            # from the ratio of linear.y to linear.x
+            # the angle traveled around the spin center
+            spin_angle_traveled = 2.0 * math.atan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
+            spin_radius = self.cmd_vel.linear.y / (1.0 - math.cos(spin_angle_traveled))
+            # get the transform from the back axle to the steer link
+            ts = self.tf_buffer.lookup_transform(self.fixed_axle_link, self.steer_link,
+                                                 rospy.Time(), rospy.Duration(4.0))
+            steer_angle = math.atan2(ts.transform.translation.x,
+                                     spin_radius - ts.transform.translation.y)
+            # TODO(lucasw) need to handle steer angle > max steer angle
+            distance_traveled = spin_radius * spin_angle_traveled
+            wheel_angular_velocity = distance_traveled / self.wheel_radius
+            # print distance_traveled, self.cmd_vel.linear.x, self.cmd_vel.linear.y
+            self.joint_state.position[0] = -steer_angle
+            self.joint_state.velocity[0] = 0.0
 
-            # angle, lead_radius = self.get_angle(self.steer_link, spin_center,
-            #                                             steer_angle, msg.header.stamp)
-            # angle, radius = self.get_angle("base_link", spin_center,
-            #                                steer_angle, msg.header.stamp)
-            # fr = radius / lead_radius
-            # distance = self.wheel_radius * lead_wheel_angular_velocity * fr * dt
-            # angle_traveled = distance / radius
-            # dx_in_ts = radius * math.sin(angle_traveled)
-            # dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
-            # dy_in_ts/dx_in_ts = msg.linear.y / msg.linear.x
-            # and then work backwards from above to get to lead_wheel_angular_velocity
-            # TODO(lucasw) is lead_wheel_angular_velocity linear.x**2 + linear.y**2 ?
-            # velocity_ratio = msg.linear.y / msg.linear.x 
-            # velocity_ratio = sin(angle_traveled) / (1.0 - cos(angle_traveled))
-            # velocity_ratio * (1.0 - cos(angle_traveled)) = sin(angle_traveled)
-            # velocity_ratio - velocity_ratio * cos(angle_traveled) = sin(angle_traveled) 
-            # velocity_ratio = sin(angle_traveled) + velocity_ratio * cos(angle_traveled)
-            # velocity_ratio = sqrt(1 - cos^2(angle_traveled)) + velocity_ratio * cos(angle_traveled)
-
+            # print spin_angle_traveled, math.degrees(spin_angle_traveled), spin_radius
 
         # TODO(lucasw) assuming fixed period for now, could
         # measure actual dt with event parameter.
         self.joint_state.position[1] += wheel_angular_velocity * self.period
         self.joint_state.velocity[1] = wheel_angular_velocity
 
-        self.steer_pub.publish(joint_state)
+        self.steer_pub.publish(self.joint_state)
 
 if __name__ == '__main__':
     rospy.init_node("cmd_vel_to_joint")

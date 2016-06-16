@@ -11,7 +11,8 @@
       type="joint_state_publisher">
     <param name="use_gui" value="$(arg use_joint_gui)"/>
     <rosparam param="source_list">
-      ["steered_joint_states"]
+      ["steer_joint_states",
+       "steered_joint_states"]
     </rosparam>
   </node>
 

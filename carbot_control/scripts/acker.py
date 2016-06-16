@@ -7,7 +7,7 @@ import rospy
 import tf2_py as tf2
 import tf2_ros
 
-from geometry_msgs.msg import Point, PointStamped, TransformStamped
+from geometry_msgs.msg import Point, PointStamped, TransformStamped, Twist
 from sensor_msgs.msg import JointState
 from tf import transformations
 from visualization_msgs.msg import Marker
@@ -85,6 +85,7 @@ class Acker():
         self.steer = rospy.get_param("~steer", {'link': 'lead_steer',
                                                 'joint': 'lead_steer_joint',
                                                 'wheel_joint': 'wheel_lead_axle'})
+        self.twist_pub = rospy.Publisher("odom_cmd_vel", Twist, queue_size=3)
         # TODO(lwalter) circular publisher here- the steer command is on
         # joint_states, then published onto steered_joint_states, which updates
         # joint_states- but the joints are different.
@@ -141,14 +142,14 @@ class Acker():
 
         steer_ind = msg.name.index(self.steer['joint'])
         steer_angle = msg.position[steer_ind]
-        # TODO(lucasw) use the wheel_lead angle as a velocity right now
-        lead_wheel_angular_velocity = msg.position[msg.name.index(self.steer['wheel_joint'])]
+        lead_wheel_angular_velocity = msg.velocity[msg.name.index(self.steer['wheel_joint'])]
         # steer_velocity = msg.velocity[steer_ind]
         # steer_effort = msg.effort[steer_ind]
 
         joint_states = JointState()
         joint_states.header = msg.header
         self.wheel_joint_states.header = msg.header
+        odom_cmd_vel = Twist()
 
         # TODO(lucaw) possibly eliminate this pathway and have
         # special case code below to mix in this special case.
@@ -156,13 +157,12 @@ class Acker():
             # TODO(lucasw) assume no rotation of link holding this joint
             # with respect to the back axle link
             for i in range(len(self.joints)):
-                joint = self.joints[i]['steer_joint']
-                if joint is None:
-                    continue
-                joint_states.name.append(joint)
-                joint_states.position.append(steer_angle)
-                # joint_states.velocity.append(steer_velocity)
-                # joint_states.effort.append(steer_effort)
+                steer_joint = self.joints[i]['steer_joint']
+                if steer_joint is not None:
+                    joint_states.name.append(steer_joint)
+                    joint_states.position.append(steer_angle)
+                    # joint_states.velocity.append(steer_velocity)
+                    # joint_states.effort.append(steer_effort)
 
                 wheel_joint = self.joints[i]['wheel_joint']
                 ind = self.wheel_joint_states.name.index(wheel_joint)
@@ -178,6 +178,10 @@ class Acker():
             # off-axis wheel driving forward will drive the robot forward because
             # all the wheels balance.
             distance = self.wheel_radius * lead_wheel_angular_velocity * dt
+            if dt > 0:
+                odom_cmd_vel.linear.x = distance / dt
+            self.twist_pub.publish(odom_cmd_vel)
+
             self.ts.transform.translation.x += distance * math.cos(self.angle)
             self.ts.transform.translation.y += distance * math.sin(-self.angle)
 
@@ -248,12 +252,17 @@ class Acker():
         # the distance traveled in the base_link frame:
         dx_in_ts = radius * math.sin(angle_traveled)
         dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
+        if dt > 0:
+            odom_cmd_vel.linear.x = dx_in_ts / dt
+            odom_cmd_vel.linear.y = dy_in_ts / dt
+            self.twist_pub.publish(odom_cmd_vel)
+
+        # then need to rotate x and y by self.angle
+        # (use a 2d rotation matrix)
         ca = math.cos(self.angle + angle)
         sa = math.sin(self.angle + angle)
         dx_in_parent = ca * dx_in_ts + sa * dy_in_ts
         dy_in_parent = -sa * dx_in_ts + ca * dy_in_ts
-        # then need to rotate x and y by self.angle
-        # (use a 2d rotation matrix)
         # then can add the rotated x and y to self.ts.transform.translation
         self.ts.transform.translation.x += dx_in_parent
         self.ts.transform.translation.y += dy_in_parent
