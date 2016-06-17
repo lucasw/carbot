@@ -267,6 +267,8 @@ class Acker():
 
         # TODO(lucasw) needs to be reconciled with alternate version above which
         # seem to match the desired odom better.
+        # another problem is that the steeper the angle gets the more dx and dy
+        # don't scale up to desired velocity, even if the proportion is reasonable.
         dx_in_ts = radius * math.sin(angle_traveled)
         dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
 

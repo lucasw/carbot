@@ -125,6 +125,9 @@ class CmdVelToJoint():
                                      back_spin_radius - fixed_to_steer.transform.translation.y)
             # TODO(lucasw) need to handle steer angle > max steer angle
             distance_traveled = back_spin_radius * spin_angle_traveled
+            # TODO(lucasw) the wheel_angular velocity here is the velocity of the base_link wheel,
+            # so needs to be scaled appropriately to the steer wheel base on the
+            # radial proportion of teh lead wheel to the base link 'wheel'.
             wheel_angular_velocity = distance_traveled / self.wheel_radius
             # print distance_traveled, self.cmd_vel.linear.x, self.cmd_vel.linear.y
             self.joint_state.position[0] = -steer_angle
