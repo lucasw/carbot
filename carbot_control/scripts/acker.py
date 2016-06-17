@@ -141,6 +141,11 @@ class Acker():
             dt = 0
 
         steer_ind = msg.name.index(self.steer['joint'])
+        wheel_ind = msg.name.index(self.steer['wheel_joint'])
+        if len(msg.velocity) < wheel_ind:
+            rospy.logwarn("no velocity for wheel_ind %d", wheel_ind)
+            return
+
         steer_angle = msg.position[steer_ind]
         lead_wheel_angular_velocity = msg.velocity[msg.name.index(self.steer['wheel_joint'])]
         # steer_velocity = msg.velocity[steer_ind]

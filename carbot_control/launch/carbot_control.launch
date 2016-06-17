@@ -6,10 +6,10 @@
   </include>
 
   <node pkg="carbot_control" type="acker.py"
-    name="acker">
+    name="acker" output="screen">
   </node>
 
   <node pkg="carbot_control" type="cmd_vel_to_joint.py"
-    name="cmd_vel_to_joint">
+    name="cmd_vel_to_joint" output="screen">
   </node>
 </launch>
