@@ -244,6 +244,8 @@ class Acker():
         # update odometry
         # There may be another odometric frame in the future, based off
         # actual encoder values rather than desired
+        # TODO(lwalter) need a steer joint at the base_link and set it
+        # to this angle
         angle, radius = self.get_angle("base_link", spin_center,
                                        steer_angle, msg.header.stamp)
         fr = radius / lead_radius
@@ -255,12 +257,18 @@ class Acker():
         else:
             self.angle -= angle_traveled
         # the distance traveled in the base_link frame:
-        dx_in_ts = radius * math.sin(angle_traveled)
-        dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
+        dx_in_ts = distance * math.cos(angle)
+        dy_in_ts = -distance * math.sin(angle)
         if dt > 0:
             odom_cmd_vel.linear.x = dx_in_ts / dt
             odom_cmd_vel.linear.y = dy_in_ts / dt
+            print math.degrees(angle), distance, odom_cmd_vel.linear.x, odom_cmd_vel.linear.y, radius, math.degrees(angle_traveled)
             self.twist_pub.publish(odom_cmd_vel)
+
+        # TODO(lucasw) needs to be reconciled with alternate version above which
+        # seem to match the desired odom better.
+        dx_in_ts = radius * math.sin(angle_traveled)
+        dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
 
         # then need to rotate x and y by self.angle
         # (use a 2d rotation matrix)
