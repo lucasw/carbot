@@ -246,38 +246,24 @@ class Acker():
         # actual encoder values rather than desired
         # TODO(lwalter) need a steer joint at the base_link and set it
         # to this angle
-        angle, radius = self.get_angle("base_link", spin_center,
+        steer_angle, radius = self.get_angle("base_link", spin_center,
                                        steer_angle, msg.header.stamp)
         fr = radius / lead_radius
         # distance traveled along the radial path in base_link
         distance = self.wheel_radius * lead_wheel_angular_velocity * fr * dt
         angle_traveled = distance / radius
-        if steer_angle > 0:
-            self.angle += angle_traveled
-        else:
-            self.angle -= angle_traveled
         # the distance traveled in the base_link frame:
-        dx_in_ts = distance * math.cos(angle)
-        dy_in_ts = -distance * math.sin(angle)
+        dx_in_ts = distance * math.cos(steer_angle)
+        dy_in_ts = -distance * math.sin(steer_angle)
         if dt > 0:
             odom_cmd_vel.linear.x = dx_in_ts / dt
             odom_cmd_vel.linear.y = dy_in_ts / dt
-            print math.degrees(angle), distance, odom_cmd_vel.linear.x, odom_cmd_vel.linear.y, radius, math.degrees(angle_traveled)
+            print math.degrees(steer_angle), distance, odom_cmd_vel.linear.x, odom_cmd_vel.linear.y, radius, math.degrees(angle_traveled)
             self.twist_pub.publish(odom_cmd_vel)
 
-        # TODO(lucasw) needs to be reconciled with alternate version above which
-        # seem to match the desired odom better.
-        # another problem is that the steeper the angle gets the more dx and dy
-        # don't scale up to desired velocity, even if the proportion is reasonable.
-        dx_in_ts = radius * math.sin(angle_traveled)
-        dy_in_ts = radius * (1.0 - math.cos(angle_traveled))
-
         # then need to rotate x and y by self.angle
-        # (use a 2d rotation matrix)
-        ca = math.cos(self.angle + angle)
-        sa = math.sin(self.angle + angle)
-        dx_in_parent = ca * dx_in_ts + sa * dy_in_ts
-        dy_in_parent = -sa * dx_in_ts + ca * dy_in_ts
+        dx_in_parent = distance * math.cos(self.angle + steer_angle)
+        dy_in_parent = -distance * math.sin(self.angle + steer_angle)
         # then can add the rotated x and y to self.ts.transform.translation
         self.ts.transform.translation.x += dx_in_parent
         self.ts.transform.translation.y += dy_in_parent
@@ -295,6 +281,11 @@ class Acker():
 
         self.joint_pub.publish(joint_states)
         self.joint_pub.publish(self.wheel_joint_states)
+
+        if steer_angle > 0:
+            self.angle += angle_traveled
+        else:
+            self.angle -= angle_traveled
 
 if __name__ == '__main__':
     acker = Acker()

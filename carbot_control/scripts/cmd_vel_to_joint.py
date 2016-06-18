@@ -121,20 +121,19 @@ class CmdVelToJoint():
                                                              self.steer_link,
                                                              rospy.Time(),
                                                              rospy.Duration(4.0))
-            steer_angle = math.atan2(fixed_to_steer.transform.translation.x,
-                                     back_spin_radius - fixed_to_steer.transform.translation.y)
+            steer_spin_radius_dx = fixed_to_steer.transform.translation.x
+            steer_spin_radius_dy = back_spin_radius - fixed_to_steer.transform.translation.y
             # TODO(lucasw) need to handle steer angle > max steer angle
-            distance_traveled = back_spin_radius * spin_angle_traveled
-            # TODO(lucasw) the wheel_angular velocity here is the velocity of the base_link wheel,
-            # so needs to be scaled appropriately to the steer wheel base on the
-            # radial proportion of teh lead wheel to the base link 'wheel'.
+            steer_angle = math.atan2(steer_spin_radius_dx, steer_spin_radius_dy)
+            steer_spin_radius = math.sqrt(steer_spin_radius_dx**2 + steer_spin_radius_dy**2)
+            distance_traveled = steer_spin_radius * spin_angle_traveled
             wheel_angular_velocity = distance_traveled / self.wheel_radius
             # print distance_traveled, self.cmd_vel.linear.x, self.cmd_vel.linear.y
             self.joint_state.position[0] = -steer_angle
             self.joint_state.velocity[0] = 0.0
 
-            print math.degrees(lin_angle), math.degrees(spin_angle_traveled), \
-                    math.degrees(steer_angle), back_spin_radius, base_x
+            # print math.degrees(lin_angle), math.degrees(spin_angle_traveled), \
+            #         math.degrees(steer_angle), back_spin_radius, base_x
             # print base_offset_angle, base_spin_radius, back_spin_radius, base_x, base_y
             # print spin_angle_traveled, math.degrees(spin_angle_traveled), spin_radius
 
