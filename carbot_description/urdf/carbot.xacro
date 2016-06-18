@@ -74,6 +74,45 @@
   </link>
 </xacro:macro>
 
+<xacro:macro name="fixed_wheel" params="name parent y">
+  <xacro:block name="${name}" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
+  <joint name="${name}_axle" type="fixed">
+    <parent link="${parent}"/>
+    <child link="${name}"/>
+    <origin xyz="0 ${y} 0" rpy="0 0 0"/>
+  </joint>
+  <xacro:wheel name="wheel_${name}" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_${name}_axle" type="continuous">
+    <parent link="${name}"/>
+    <child link="wheel_${name}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+</xacro:macro>
+
+<xacro:macro name="steered_wheel" params="name parent y">
+  <xacro:block name="${name}_steer" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
+  <joint name="${name}_steer_joint" type="revolute">
+    <parent link="${parent}"/>
+    <child link="${name}_steer"/>
+    <origin xyz="0 ${y} 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
+  </joint>
+
+  <xacro:wheel name="wheel_${name}" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <joint name="wheel_${name}_axle" type="continuous">
+    <parent link="${name}_steer"/>
+    <child link="wheel_${name}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="1000.0" velocity="0.5"/>
+  </joint>
+</xacro:macro>
+
   <link name="base_link"/>
   <xacro:block name="chassis_link" length="${car_length}"
       width="${car_width}" height="${car_height}" mass="1.0"/>
@@ -82,7 +121,18 @@
     <child link="chassis_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
-
+  <!-- virtual joint that allows visualization of where the
+    base_link is steering (given the lead steer joint)
+    -->
+  <link name="base_steer"/>
+  <joint name="base_steer_joint" type="revolute">
+    <!--parent link="base_link"/-->
+    <parent link="base_link"/>
+    <child link="base_steer"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
+  </joint>
 
   <xacro:block name="test_link" length="${car_length/2.0}"
       width="${car_width}" height="${car_height}" mass="0.5"/>
@@ -92,6 +142,10 @@
     <origin xyz="0 0 ${car_height}" rpy="0 0 0"/>
   </joint>
 
+  <!-- every link has to have inertia in order for it to work in gazebo
+    even if it just connects two inertia links- without it the child link
+    that doesn't have inertia won't appear.
+    -->
   <xacro:block name="front_axle" length="${car_width/8.0}"
       width="${car_width}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="front_axle_joint" type="fixed">
@@ -128,45 +182,10 @@
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <!-- front left -->
-  <xacro:block name="front_left_steer" length="${car_width/8.0}"
-      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
-  <joint name="front_left_steer_joint" type="revolute">
-    <parent link="front_axle"/>
-    <child link="front_left_steer"/>
-    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
-    <axis xyz="0 0 -1"/>
-    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
-  </joint>
-
-  <xacro:wheel name="wheel_front_left" width="${wheel_width}" height="0.4" mass="0.2"/>
-  <joint name="wheel_front_left_axle" type="continuous">
-    <parent link="front_left_steer"/>
-    <child link="wheel_front_left"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="1000.0" velocity="0.5"/>
-  </joint>
-
-  <!-- front right -->
-  <xacro:block name="front_right_steer" length="${car_width/8.0}"
-      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
-  <joint name="front_right_steer_joint" type="revolute">
-    <parent link="front_axle"/>
-    <child link="front_right_steer"/>
-    <origin xyz="0 ${-car_width/2 - wheel_width/2 - 0.1} 0" rpy="0 0 0"/>
-    <axis xyz="0 0 -1"/>
-    <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
-  </joint>
-
-  <xacro:wheel name="wheel_front_right" width="${wheel_width}" height="0.4" mass="0.2"/>
-  <joint name="wheel_front_right_axle" type="continuous">
-    <parent link="front_right_steer"/>
-    <child link="wheel_front_right"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="1000.0" velocity="0.5"/>
-  </joint>
+  <xacro:steered_wheel name="front_left" parent="front_axle"
+      y="${car_width/2 + wheel_width/2 + 0.1}"/>
+  <xacro:steered_wheel name="front_right" parent="front_axle"
+      y="${-car_width/2 - wheel_width/2 - 0.1}"/>
 
   <xacro:block name="back_axle" length="${car_width/8.0}"
       width="${car_width}" height="${car_width/8.0}" mass="0.1"/>
@@ -176,37 +195,9 @@
     <origin xyz="${-car_length/2 + 0.05} 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- back left -->
-  <xacro:block name="back_left" length="${car_width/8.0}"
-      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
-  <joint name="back_left_axle" type="fixed">
-    <parent link="back_axle"/>
-    <child link="back_left"/>
-    <origin xyz="0 ${car_width/2 + wheel_width/2 + 0.1} 0" rpy="0 0 0"/>
-  </joint>
-  <xacro:wheel name="wheel_back_left" width="${wheel_width}" height="0.4" mass="0.2"/>
-  <joint name="wheel_back_left_axle" type="continuous">
-    <parent link="back_left"/>
-    <child link="wheel_back_left"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="1000.0" velocity="0.5"/>
-  </joint>
-
-  <xacro:block name="back_right" length="${car_width/8.0}"
-      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
-  <joint name="back_right_axle" type="fixed">
-    <parent link="back_axle"/>
-    <child link="back_right"/>
-    <origin xyz="0 ${-1 * (car_width/2 + wheel_width/2 + 0.1)} 0" rpy="0 0 0"/>
-  </joint>
-  <xacro:wheel name="wheel_back_right" width="${wheel_width}" height="0.4" mass="0.2"/>
-  <joint name="wheel_back_right_axle" type="continuous">
-    <parent link="back_right"/>
-    <child link="wheel_back_right"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="1000.0" velocity="0.5"/>
-  </joint>
+  <xacro:fixed_wheel name="back_left" parent="back_axle"
+      y="${car_width/2 + wheel_width/2 + 0.1}"/>
+  <xacro:fixed_wheel name="back_right" parent="back_axle"
+      y="${-1 * (car_width/2 + wheel_width/2 + 0.1)}"/>
 
 </robot>
