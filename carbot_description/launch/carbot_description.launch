@@ -26,4 +26,5 @@
   <node if="$(arg use_static_tf)"
       pkg="tf" type="static_transform_publisher" name="static_transform_publisher"
       args="0 0 0.2 0 0 0 map base_link 30"/>
+
 </launch>

@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="use_rviz" default="false"/>
   <include file="$(find carbot_description)/launch/carbot_description.launch">
     <arg name="use_static_tf" value="false"/>
     <arg name="use_joint_gui" value="false"/>
+    <arg name="use_rviz" value="$(arg use_rviz)"/>
   </include>
 
   <node pkg="carbot_control" type="acker.py"

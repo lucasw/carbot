@@ -11,6 +11,8 @@
 <!-- turning to right -->
 <xacro:property name="max_steer" value="0.7"/>
 
+<xacro:include filename="$(find carbot_description)/urdf/carbot.gazebo"/>
+
 <!-- don't use macro names that are the same as other key names
   like 'box', 'cylinder', etc. otherwise get Invalid parameter "size"
 -->
@@ -28,7 +30,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="${length/2} ${width/2} ${height/2}"/>
+        <box size="${length} ${width} ${height}"/>
       </geometry>
     </collision>
     <inertial>
@@ -72,10 +74,26 @@
   </link>
 </xacro:macro>
 
-  <xacro:block name="base_link" length="${car_length}"
+  <link name="base_link"/>
+  <xacro:block name="chassis_link" length="${car_length}"
       width="${car_width}" height="${car_height}" mass="1.0"/>
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
 
-  <link name="front_axle"/>
+
+  <xacro:block name="test_link" length="${car_length/2.0}"
+      width="${car_width}" height="${car_height}" mass="0.5"/>
+  <joint name="test_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="test_link"/>
+    <origin xyz="0 0 ${car_height}" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:block name="front_axle" length="${car_width/8.0}"
+      width="${car_width}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="front_axle_joint" type="fixed">
     <parent link="base_link"/>
     <child link="front_axle"/>
@@ -111,7 +129,8 @@
   </joint>
 
   <!-- front left -->
-  <link name="front_left_steer"/>
+  <xacro:block name="front_left_steer" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="front_left_steer_joint" type="revolute">
     <parent link="front_axle"/>
     <child link="front_left_steer"/>
@@ -130,7 +149,8 @@
   </joint>
 
   <!-- front right -->
-  <link name="front_right_steer"/>
+  <xacro:block name="front_right_steer" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="front_right_steer_joint" type="revolute">
     <parent link="front_axle"/>
     <child link="front_right_steer"/>
@@ -148,7 +168,8 @@
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="back_axle"/>
+  <xacro:block name="back_axle" length="${car_width/8.0}"
+      width="${car_width}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="back_axle_joint" type="fixed">
     <parent link="base_link"/>
     <child link="back_axle"/>
@@ -156,7 +177,8 @@
   </joint>
 
   <!-- back left -->
-  <link name="back_left"/>
+  <xacro:block name="back_left" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="back_left_axle" type="fixed">
     <parent link="back_axle"/>
     <child link="back_left"/>
@@ -171,7 +193,8 @@
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="back_right"/>
+  <xacro:block name="back_right" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
   <joint name="back_right_axle" type="fixed">
     <parent link="back_axle"/>
     <child link="back_right"/>

@@ -258,7 +258,8 @@ class Acker():
         if dt > 0:
             odom_cmd_vel.linear.x = dx_in_ts / dt
             odom_cmd_vel.linear.y = dy_in_ts / dt
-            print math.degrees(steer_angle), distance, odom_cmd_vel.linear.x, odom_cmd_vel.linear.y, radius, math.degrees(angle_traveled)
+            # print math.degrees(steer_angle), distance, odom_cmd_vel.linear.x, \
+            #         odom_cmd_vel.linear.y, radius, math.degrees(angle_traveled)
             self.twist_pub.publish(odom_cmd_vel)
 
         # then need to rotate x and y by self.angle
