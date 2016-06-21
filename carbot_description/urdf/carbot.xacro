@@ -96,11 +96,11 @@
 
   <transmission name="${name}_tran">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${name}_joint">
-      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    <joint name="wheel_${name}_axle">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="${name}_motor">
-      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
@@ -120,10 +120,10 @@
   <transmission name="${name}_steer_tran">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="${name}_steer_joint">
-      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="${name}_steer_motor">
-      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
@@ -140,11 +140,11 @@
   <!-- TODO(lucasw) make front wheel drive optional -->
   <transmission name="${name}_tran">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${name}_joint">
-      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    <joint name="wheel_${name}_axle">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="${name}_motor">
-      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    <actuator name="wheel_${name}_motor">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>

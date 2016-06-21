@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="use_rviz" default="false"/>
+
+  <rosparam file="$(find carbot_gazebo_control)/config/carbot_gazebo_control.yaml" command="load"/>
+
+  <!-- load every controller in the yaml -->
+  <node name="spawner" pkg="controller_manager" type="spawner"
+    output="screen" ns="/carbot"
+    args="joint_state_controller
+       front_left_steer_position_controller
+       front_right_steer_position_controller"/>
+
+  <include file="$(find carbot_gazebo)/launch/carbot_world.launch">
+  </include>
+
+</launch>

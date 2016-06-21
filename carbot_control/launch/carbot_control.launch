@@ -7,6 +7,7 @@
     <arg name="use_rviz" value="$(arg use_rviz)"/>
   </include>
 
+  <!--
   <node pkg="carbot_control" type="acker.py"
     name="acker" output="screen">
   </node>
@@ -14,4 +15,5 @@
   <node pkg="carbot_control" type="cmd_vel_to_joint.py"
     name="cmd_vel_to_joint" output="screen">
   </node>
+  -->
 </launch>
