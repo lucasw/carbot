@@ -104,6 +104,11 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+
+  <gazebo reference="wheel_${name}">
+    <mu1>800</mu1>
+    <mu2>800</mu2>
+  </gazebo>
 </xacro:macro>
 
 <xacro:macro name="steered_wheel" params="name parent y">
