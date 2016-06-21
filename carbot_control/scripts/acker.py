@@ -9,6 +9,7 @@ import tf2_ros
 
 from geometry_msgs.msg import Point, PointStamped, TransformStamped, Twist
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64
 from tf import transformations
 from visualization_msgs.msg import Marker
 
@@ -29,27 +30,46 @@ class Acker():
         self.joints = rospy.get_param("~steered_joints",
                                        [{'link': 'front_left_steer',
                                          'steer_joint': 'front_left_steer_joint',
-                                         'wheel_joint': 'wheel_front_left_axle'},
+                                         'steer_topic': '/carbot/front_left_steer_position_controller/command',
+                                         'wheel_joint': 'wheel_front_left_axle',
+                                         'wheel_topic': None},
                                         {'link': 'front_right_steer',
                                          'steer_joint': 'front_right_steer_joint',
-                                         'wheel_joint': 'wheel_front_right_axle'},
+                                         'steer_topic': '/carbot/front_right_steer_position_controller/command',
+                                         'wheel_joint': 'wheel_front_right_axle',
+                                         'wheel_topic': None},
                                         {'link': 'back_left',
                                          'steer_joint': None,
-                                         'wheel_joint': 'wheel_back_left_axle'},
+                                         'steer_topic': None,
+                                         'wheel_joint': 'wheel_back_left_axle',
+                                         'wheel_topic': None},
                                         {'link': 'back_right',
                                          'steer_joint': None,
-                                         'wheel_joint': 'wheel_back_right_axle'}])
+                                         'steer_topic': None,
+                                         'wheel_joint': 'wheel_back_right_axle',
+                                         'wheel_topic': None}])
 
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
+        # gazebo joint controller commands
+        self.command_pub = {}
         # use this to store all the positions persistently
         self.wheel_joint_states = JointState()
         for wheel in self.joints:
+            steer_topic = wheel['steer_topic']
+            if steer_topic is not None:
+                self.command_pub[wheel['steer_joint']] = rospy.Publisher(steer_topic,
+                                                                         Float64, queue_size=1)
+            wheel_topic = wheel['wheel_topic']
+            if wheel_topic is not None:
+                self.command_pub[wheel['wheel_joint']] = rospy.Publisher(wheel_topic,
+                                                                         Float64, queue_size=1)
+
             # TODO(lucasw) read the current angle to initialize
             self.wheel_joint_states.name.append(wheel['wheel_joint'])
             self.wheel_joint_states.position.append(0.0)
             self.wheel_joint_states.velocity.append(0.0)
 
-        # TODO(lwalter) initialize the current position from
+        # TODO(lucasw) initialize the current position from
         # another source
         self.ts = TransformStamped()
         self.ts.header.frame_id = "map"
@@ -81,12 +101,15 @@ class Acker():
 
         self.marker_pub = rospy.Publisher("marker", Marker, queue_size=len(self.joints) * 2)
         self.point_pub = rospy.Publisher("spin_center", PointStamped, queue_size=1)
+        # TODO(lucasw) would like there to be a gazebo plugin that takes
+        # desired joint position and velocity, but I believe there is only
+        # the simple command inputs that pid to a position or velocity, but not both.
         self.joint_pub = rospy.Publisher("steered_joint_states", JointState, queue_size=3)
         self.steer = rospy.get_param("~steer", {'link': 'lead_steer',
                                                 'joint': 'lead_steer_joint',
                                                 'wheel_joint': 'wheel_lead_axle'})
         self.twist_pub = rospy.Publisher("odom_cmd_vel", Twist, queue_size=3)
-        # TODO(lwalter) circular publisher here- the steer command is on
+        # TODO(lucasw) circular publisher here- the steer command is on
         # joint_states, then published onto steered_joint_states, which updates
         # joint_states- but the joints are different.
         self.joint_sub = rospy.Subscriber("joint_states", JointState,
@@ -168,12 +191,16 @@ class Acker():
                     joint_states.position.append(steer_angle)
                     # joint_states.velocity.append(steer_velocity)
                     # joint_states.effort.append(steer_effort)
+                if steer_joint in self.command_pub.keys():
+                    self.command_pub[steer_joint].publish(steer_angle)
 
                 wheel_joint = self.joints[i]['wheel_joint']
                 ind = self.wheel_joint_states.name.index(wheel_joint)
                 # TODO(lucasw) this assumes all wheels have the same radius
                 self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * dt
                 self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity
+                if wheel_joint in self.command_pub.keys():
+                    self.command_pub[wheel_joint].publish(wheel_angle)
 
             self.joint_pub.publish(joint_states)
             self.joint_pub.publish(self.wheel_joint_states)
@@ -234,6 +261,9 @@ class Acker():
                 joint_states.name.append(joint)
                 joint_states.position.append(angle)
 
+            if joint in self.command_pub.keys():
+                self.command_pub[joint].publish(angle)
+
             wheel_joint = self.joints[i]['wheel_joint']
             ind = self.wheel_joint_states.name.index(wheel_joint)
             # TODO(lucasw) lead_wheel_angular_velocity for this joint needs
@@ -241,10 +271,13 @@ class Acker():
             self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * fr * dt
             self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity * fr
 
+            if wheel_joint in self.command_pub.keys():
+                self.command_pub[wheel_joint].publish(self.wheel_joint_states.position[ind])
+
         # update odometry
         # There may be another odometric frame in the future, based off
         # actual encoder values rather than desired
-        # TODO(lwalter) need a steer joint at the base_link and set it
+        # TODO(lucasw) need a steer joint at the base_link and set it
         # to this angle
         steer_angle, radius = self.get_angle("base_link", spin_center,
                                        steer_angle, msg.header.stamp)

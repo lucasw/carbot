@@ -12,9 +12,12 @@
     <param name="use_gui" value="$(arg use_joint_gui)"/>
     <rosparam param="source_list">
       ["carbot/joint_states",
-       "steer_joint_states",
-       "steered_joint_states"]
+       "steer_joint_states"]
     </rosparam>
+      <!-- these are controlled by gazebo now, but TODO(lucasw) need a non-gazebo
+        way to set them also- it could be this rosparam is set elsewhere,
+        or has an if=arg in it. -->
+      <!-- "steered_joint_states"] -->
   </node>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher"
