@@ -32,22 +32,22 @@ class Acker():
                                          'steer_joint': 'front_left_steer_joint',
                                          'steer_topic': '/carbot/front_left_steer_position_controller/command',
                                          'wheel_joint': 'wheel_front_left_axle',
-                                         'wheel_topic': None},
+                                         'wheel_topic': '/carbot/wheel_front_left_position_controller/command'},
                                         {'link': 'front_right_steer',
                                          'steer_joint': 'front_right_steer_joint',
                                          'steer_topic': '/carbot/front_right_steer_position_controller/command',
                                          'wheel_joint': 'wheel_front_right_axle',
-                                         'wheel_topic': None},
+                                         'wheel_topic': '/carbot/wheel_front_right_position_controller/command'},
                                         {'link': 'back_left',
                                          'steer_joint': None,
                                          'steer_topic': None,
                                          'wheel_joint': 'wheel_back_left_axle',
-                                         'wheel_topic': None},
+                                         'wheel_topic': '/carbot/wheel_back_left_position_controller/command'},
                                         {'link': 'back_right',
                                          'steer_joint': None,
                                          'steer_topic': None,
                                          'wheel_joint': 'wheel_back_right_axle',
-                                         'wheel_topic': None}])
+                                         'wheel_topic': '/carbot/wheel_back_right_position_controller/command'}])
 
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
         # gazebo joint controller commands
@@ -58,11 +58,11 @@ class Acker():
             steer_topic = wheel['steer_topic']
             if steer_topic is not None:
                 self.command_pub[wheel['steer_joint']] = rospy.Publisher(steer_topic,
-                                                                         Float64, queue_size=1)
+                                                                         Float64, queue_size=4)
             wheel_topic = wheel['wheel_topic']
             if wheel_topic is not None:
                 self.command_pub[wheel['wheel_joint']] = rospy.Publisher(wheel_topic,
-                                                                         Float64, queue_size=1)
+                                                                         Float64, queue_size=4)
 
             # TODO(lucasw) read the current angle to initialize
             self.wheel_joint_states.name.append(wheel['wheel_joint'])
@@ -200,8 +200,9 @@ class Acker():
                 self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * dt
                 self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity
                 if wheel_joint in self.command_pub.keys():
-                    self.command_pub[wheel_joint].publish(wheel_angle)
+                    self.command_pub[wheel_joint].publish(self.wheel_joint_states.position[ind])
 
+            # TODO(lucasw) combine these into one message
             self.joint_pub.publish(joint_states)
             self.joint_pub.publish(self.wheel_joint_states)
 
@@ -270,7 +271,6 @@ class Acker():
             # to be scaled by different in distance to spin center
             self.wheel_joint_states.position[ind] += lead_wheel_angular_velocity * fr * dt
             self.wheel_joint_states.velocity[ind] = lead_wheel_angular_velocity * fr
-
             if wheel_joint in self.command_pub.keys():
                 self.command_pub[wheel_joint].publish(self.wheel_joint_states.position[ind])
 

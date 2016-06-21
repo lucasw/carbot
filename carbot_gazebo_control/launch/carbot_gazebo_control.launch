@@ -9,7 +9,11 @@
     output="screen" ns="/carbot"
     args="joint_state_controller
        front_left_steer_position_controller
-       front_right_steer_position_controller"/>
+       front_right_steer_position_controller
+       wheel_front_left_position_controller
+       wheel_front_right_position_controller
+       wheel_back_left_position_controller
+       wheel_back_right_position_controller"/>
 
   <include file="$(find carbot_gazebo)/launch/carbot_world.launch">
   </include>

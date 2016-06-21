@@ -15,3 +15,20 @@ carbot:
     type: effort_controllers/JointPositionController
     joint: front_right_steer_joint
     pid: {p: 10.0, i: 0.001, d: 1.0}
+  # TODO(lucasw) are these better off velocity controllers?
+  wheel_front_left_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: wheel_front_left_axle
+    pid: {p: 10.0, i: 0.001, d: 1.0}
+  wheel_front_right_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: wheel_front_right_axle
+    pid: {p: 10.0, i: 0.001, d: 1.0}
+  wheel_back_left_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: wheel_back_left_axle
+    pid: {p: 10.0, i: 0.001, d: 1.0}
+  wheel_back_right_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: wheel_back_right_axle
+    pid: {p: 10.0, i: 0.001, d: 1.0}
