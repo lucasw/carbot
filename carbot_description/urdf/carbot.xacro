@@ -107,7 +107,9 @@
 
   <gazebo reference="wheel_${name}">
     <mu1>800</mu1>
-    <mu2>800</mu2>
+    <mu2>100</mu2>
+    <kp value="10000000.0"/>
+    <kd value="1.0"/>
   </gazebo>
 </xacro:macro>
 
@@ -157,7 +159,7 @@
 
   <link name="base_link"/>
   <xacro:block name="chassis_link" length="${car_length}"
-      width="${car_width}" height="${car_height}" mass="1.0"/>
+      width="${car_width}" height="${car_height}" mass="10.0"/>
   <joint name="chassis_joint" type="fixed">
     <parent link="base_link"/>
     <child link="chassis_link"/>
@@ -181,7 +183,7 @@
   <joint name="test_joint" type="fixed">
     <parent link="base_link"/>
     <child link="test_link"/>
-    <origin xyz="0 0 ${car_height}" rpy="0 0 0"/>
+    <origin xyz="0.1 0 ${car_height}" rpy="0 0 0"/>
   </joint>
 
   <!-- every link has to have inertia in order for it to work in gazebo

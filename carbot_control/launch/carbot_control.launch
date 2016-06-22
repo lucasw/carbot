@@ -7,11 +7,21 @@
     <arg name="use_rviz" value="$(arg use_rviz)"/>
   </include>
 
+  <node pkg="joy" type="joy_node"
+      name="joy">
+    <param name="dev" value="/dev/input/js0"/>
+  </node>
+
+  <node pkg="teleop_twist_joy" type="teleop_node"
+      name="teleop_twist_joy"/>
+    <rosparam command="load" file="$(find carbot_control)/config/xbox.config/yaml"/>
+  </node>
+
   <node pkg="carbot_control" type="acker.py"
-    name="acker" output="screen">
+      name="acker" output="screen">
   </node>
 
   <node pkg="carbot_control" type="cmd_vel_to_joint.py"
-    name="cmd_vel_to_joint" output="screen">
+      name="cmd_vel_to_joint" output="screen">
   </node>
 </launch>
