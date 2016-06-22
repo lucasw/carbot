@@ -19,6 +19,14 @@ class CmdVelToJoint():
     def __init__(self):
         self.rate = rospy.get_param("~rate", 20.0)
         self.period = 1.0 / self.rate
+        
+        # angular mode maps angular z directly to steering angle
+        # (adjusted appropriately)
+        # non-angular mode is somewhat suspect, but it turns
+        # a linear y into a command to turn just so that the
+        # achieved linear x and y match the desired, though
+        # the vehicle has to turn to do so.
+        self.angular_mode = rospy.get_param("~angular_mode", True)
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf = tf2_ros.TransformListener(self.tf_buffer)
@@ -58,18 +66,37 @@ class CmdVelToJoint():
         # if self.cmd_vel is None:
         #     return
 
-        steer_transform = self.tf_buffer.lookup_transform(self.fixed_axle_link,
-                                                          self.steer_link,
-                                                          rospy.Time(),
-                                                          rospy.Duration(4.0))
-        self.joint_state.header.stamp = steer_transform.header.stamp
+        # get the transform from the back axle to the steer link
+        fixed_to_steer = self.tf_buffer.lookup_transform(self.fixed_axle_link,
+                                                         self.steer_link,
+                                                         rospy.Time(),
+                                                         rospy.Duration(4.0))
+        self.joint_state.header.stamp = fixed_to_steer.header.stamp
+        
+        # TODO(lucasw) use same time as fixed_to_steer above
+        fixed_to_base = self.tf_buffer.lookup_transform(self.fixed_axle_link,
+                                                        "base_link",
+                                                        rospy.Time(),
+                                                        rospy.Duration(4.0))
         # if the cmd_vel is pure linear x, then the joint state is at zero
         # steer angle (no skid steering modelled).
         wheel_angular_velocity = 0
-        if self.cmd_vel.linear.y == 0.0:
+        if self.angular_mode or self.cmd_vel.linear.y == 0.0:
             self.joint_state.position[0] = 0.0
             self.joint_state.velocity[0] = 0.0
             wheel_angular_velocity = self.cmd_vel.linear.x / self.wheel_radius
+            # handle self.cmd_vel.angular.z
+            # the proper steer angle is a function of linear.x-
+            # linear.x = angular.z * radius
+            if self.cmd_vel.angular.z != 0.0 and self.cmd_vel.linear.x != 0.0:
+                base_turn_radius = self.cmd_vel.linear.x / self.cmd_vel.angular.z
+                # base_turn_radius * sin(fixed_to_base_angle) = fixed_to_base.transform.translation.x
+                fixed_to_base_angle = math.asin(fixed_to_base.transform.translation.x / base_turn_radius)
+                # spin center relative to fixed axle
+                spin_center_y = base_turn_radius * math.cos(fixed_to_base_angle)
+                steer_angle = math.atan2(fixed_to_steer.transform.translation.x,
+                                         spin_center_y)
+                self.joint_state.position[0] = steer_angle
         elif self.cmd_vel.linear.x == 0.0:
             # TODO(lucasw) what to do here?
             # Could do nothing, but that doesn't reflect the intent of the cmd_vel
@@ -86,8 +113,6 @@ class CmdVelToJoint():
             self.joint_state.velocity[0] = 0.0
         else:
             # need to calculate the steer angle
-            fixed_to_base = self.tf_buffer.lookup_transform(self.fixed_axle_link, "base_link",
-                                                 rospy.Time(), rospy.Duration(4.0))
             # the angle traveled around the spin center
             lin_y = self.cmd_vel.linear.y
             lin_x = self.cmd_vel.linear.x
@@ -116,11 +141,6 @@ class CmdVelToJoint():
             spin_center.header.frame_id = self.fixed_axle_link
             self.point_pub.publish(spin_center)
 
-            # get the transform from the back axle to the steer link
-            fixed_to_steer = self.tf_buffer.lookup_transform(self.fixed_axle_link,
-                                                             self.steer_link,
-                                                             rospy.Time(),
-                                                             rospy.Duration(4.0))
             steer_spin_radius_dx = fixed_to_steer.transform.translation.x
             steer_spin_radius_dy = back_spin_radius - fixed_to_steer.transform.translation.y
             # TODO(lucasw) need to handle steer angle > max steer angle

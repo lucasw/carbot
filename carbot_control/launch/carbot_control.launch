@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="use_joy" default="false"/>
   <arg name="use_rviz" default="false"/>
   <include file="$(find carbot_description)/launch/carbot_description.launch">
     <arg name="use_static_tf" value="false"/>
@@ -7,21 +8,26 @@
     <arg name="use_rviz" value="$(arg use_rviz)"/>
   </include>
 
+  <group if="$(arg use_joy)">
   <node pkg="joy" type="joy_node"
       name="joy">
     <param name="dev" value="/dev/input/js0"/>
   </node>
 
   <node pkg="teleop_twist_joy" type="teleop_node"
-      name="teleop_twist_joy"/>
+      name="teleop_twist_joy">
     <rosparam command="load" file="$(find carbot_control)/config/xbox.config/yaml"/>
   </node>
-
-  <node pkg="carbot_control" type="acker.py"
-      name="acker" output="screen">
+  </group>
+  <node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
+      name="teleop_twist_keyboard" unless="$(arg use_joy)">
   </node>
 
   <node pkg="carbot_control" type="cmd_vel_to_joint.py"
       name="cmd_vel_to_joint" output="screen">
+  </node>
+
+  <node pkg="carbot_control" type="acker.py"
+      name="acker" output="screen">
   </node>
 </launch>
