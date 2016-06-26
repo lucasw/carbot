@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="use_joy" default="false"/>
+  <arg name="use_joy" default="false" doc="use joystick input"/>
   <arg name="use_rviz" default="false"/>
+  <arg name="use_command_to_joint" default="true" doc="if the gazebo simulation isn't running, and there is no encoder feedback being converted to joint states, generate joint states from their commands"/>
   <include file="$(find carbot_description)/launch/carbot_description.launch">
     <arg name="use_static_tf" value="false"/>
     <arg name="use_joint_gui" value="false"/>
@@ -30,4 +31,11 @@
   <node pkg="carbot_control" type="acker.py"
       name="acker" output="screen">
   </node>
+
+  <!-- TODO(lucasw) instead of this, look at ros control boilerplate and make
+      a controller that does the same thing -->
+  <!--node pkg="command_to_joint_state" type="command_to_joint_state.py"
+      name="command_to_joint_state" output="screen"
+      if="$(arg use_command_to_joint_state)">
+  </node-->
 </launch>

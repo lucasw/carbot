@@ -105,15 +105,15 @@ class Acker():
         # desired joint position and velocity, but I believe there is only
         # the simple command inputs that pid to a position or velocity, but not both.
         self.joint_pub = rospy.Publisher("steered_joint_states", JointState, queue_size=3)
-        self.steer = rospy.get_param("~steer", {'link': 'lead_steer',
-                                                'joint': 'lead_steer_joint',
-                                                'wheel_joint': 'wheel_lead_axle'})
+        self.lead_steer = rospy.get_param("~steer", {'link': 'lead_steer',
+                                                     'joint': 'lead_steer_joint',
+                                                     'wheel_joint': 'wheel_lead_axle'})
         self.twist_pub = rospy.Publisher("odom_cmd_vel", Twist, queue_size=3)
         # TODO(lucasw) circular publisher here- the steer command is on
         # joint_states, then published onto steered_joint_states, which updates
         # joint_states- but the joints are different.
         self.joint_sub = rospy.Subscriber("joint_states", JointState,
-                                          self.steer_callback, queue_size=4)
+                                          self.lead_steer_callback, queue_size=4)
 
         self.timer = rospy.Timer(rospy.Duration(self.period), self.update)
 
@@ -149,13 +149,20 @@ class Acker():
         self.marker_pub.publish(self.marker)
         return angle, radius
 
-    def steer_callback(self, msg):
-        if self.steer['joint'] not in msg.name:
-            rospy.logwarn("no %s joint in joint state msg" % (self.steer['joint']))
+    # TODO(lucasw) want to receive a joint state that has position
+    # and velocity and command a joint_state to achieve it, but ros_control
+    # can only take a command for a single value, would need a pvt style
+    # interface running upstream of ros_control, or make custom own ros_control
+    # controller?
+    def lead_steer_callback(self, msg):
+        lead_steer_joint = self.lead_steer['joint']
+        if lead_steer_joint not in msg.name:
+            rospy.logwarn("no %s joint in joint state msg" % (lead_steer_joint))
             rospy.logwarn(msg)
             return
-        if self.steer['wheel_joint'] not in msg.name:
-            rospy.logwarn("no %s joint in joint state msg" % (self.steer['joint']))
+        lead_wheel_joint = self.lead_steer['wheel_joint']
+        if lead_wheel_joint not in msg.name:
+            rospy.logwarn("no %s joint in joint state msg" % (lead_wheel_joint))
             rospy.logwarn(msg)
             return
 
@@ -163,14 +170,14 @@ class Acker():
         if self.wheel_joint_states.header.stamp.to_sec() == 0.0:
             dt = 0
 
-        steer_ind = msg.name.index(self.steer['joint'])
-        wheel_ind = msg.name.index(self.steer['wheel_joint'])
+        steer_ind = msg.name.index(lead_steer_joint)
+        wheel_ind = msg.name.index(lead_wheel_joint)
         if len(msg.velocity) < wheel_ind:
             # rospy.logwarn("no velocity for wheel_ind %d", wheel_ind)
             return
 
         steer_angle = msg.position[steer_ind]
-        lead_wheel_angular_velocity = msg.velocity[msg.name.index(self.steer['wheel_joint'])]
+        lead_wheel_angular_velocity = msg.velocity[wheel_ind]
         # steer_velocity = msg.velocity[steer_ind]
         # steer_effort = msg.effort[steer_ind]
 
@@ -231,7 +238,7 @@ class Acker():
             return
 
         # find spin center given steer joint
-        steer_ts = self.tf_buffer.lookup_transform(self.back_axle_link, self.steer['link'],
+        steer_ts = self.tf_buffer.lookup_transform(self.back_axle_link, self.lead_steer['link'],
                                                    msg.header.stamp, rospy.Duration(4.0))
 
         spin_center = PointStamped()
@@ -245,7 +252,7 @@ class Acker():
         spin_center.header.frame_id = self.back_axle_link
         self.point_pub.publish(spin_center)
 
-        angle, lead_radius = self.get_angle(self.steer['link'], spin_center,
+        angle, lead_radius = self.get_angle(self.lead_steer['link'], spin_center,
                                             steer_angle, msg.header.stamp)
         # TODO(lucasw) assume no rotation for now- zero steer angle
         # means the steer joint is aligned with x axis of the robot
