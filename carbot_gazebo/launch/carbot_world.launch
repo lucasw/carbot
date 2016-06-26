@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-
+  <arg name="use_joy" default="false" doc="use joystick/gamepad"/>
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
@@ -21,6 +21,7 @@
   <!-- Load the URDF into the ROS Parameter Server -->
   <include file="$(find carbot_control)/launch/carbot_control.launch">
     <arg name="use_rviz" value="true"/>
+    <arg name="use_joy" value="$(arg use_joy)"/>
   </include>
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->

@@ -19,7 +19,7 @@ class CmdVelToJoint():
     def __init__(self):
         self.rate = rospy.get_param("~rate", 20.0)
         self.period = 1.0 / self.rate
-        
+
         # angular mode maps angular z directly to steering angle
         # (adjusted appropriately)
         # non-angular mode is somewhat suspect, but it turns
@@ -72,7 +72,7 @@ class CmdVelToJoint():
                                                          rospy.Time(),
                                                          rospy.Duration(4.0))
         self.joint_state.header.stamp = fixed_to_steer.header.stamp
-        
+
         # TODO(lucasw) use same time as fixed_to_steer above
         fixed_to_base = self.tf_buffer.lookup_transform(self.fixed_axle_link,
                                                         "base_link",
@@ -80,24 +80,41 @@ class CmdVelToJoint():
                                                         rospy.Duration(4.0))
         # if the cmd_vel is pure linear x, then the joint state is at zero
         # steer angle (no skid steering modelled).
+        linear_x = self.cmd_vel.linear.x
+        linear_y = self.cmd_vel.linear.y
+        angular_z = self.cmd_vel.angular.z
         wheel_angular_velocity = 0
-        if self.angular_mode or self.cmd_vel.linear.y == 0.0:
+        if self.angular_mode or linear_y == 0.0:
             self.joint_state.position[0] = 0.0
             self.joint_state.velocity[0] = 0.0
-            wheel_angular_velocity = self.cmd_vel.linear.x / self.wheel_radius
-            # handle self.cmd_vel.angular.z
+            wheel_angular_velocity = linear_x / self.wheel_radius
+            # handle angular z
             # the proper steer angle is a function of linear.x-
-            # linear.x = angular.z * radius
-            if self.cmd_vel.angular.z != 0.0 and self.cmd_vel.linear.x != 0.0:
-                base_turn_radius = self.cmd_vel.linear.x / self.cmd_vel.angular.z
+            # linear_x = angular_z * radius
+            if self.angular_mode and angular_z != 0.0 and linear_x != 0.0:
+                base_turn_radius = abs(linear_x) / abs(angular_z)
+                # can't have a turn radius smaller then translation x
+                if base_turn_radius < fixed_to_base.transform.translation.x:
+                    base_turn_radius = fixed_to_base.transform.translation.x
+                    # TODO(lucasw) logwarn?
                 # base_turn_radius * sin(fixed_to_base_angle) = fixed_to_base.transform.translation.x
-                fixed_to_base_angle = math.asin(fixed_to_base.transform.translation.x / base_turn_radius)
+                try:
+                    fixed_to_base_angle = math.asin(fixed_to_base.transform.translation.x / base_turn_radius)
+                except:
+                    print base_turn_radius, fixed_to_base.transform.translation.x
+                    return
                 # spin center relative to fixed axle
                 spin_center_y = base_turn_radius * math.cos(fixed_to_base_angle)
                 steer_angle = math.atan2(fixed_to_steer.transform.translation.x,
                                          spin_center_y)
+                if angular_z > 0.0:
+                    spin_center_y = -spin_center_y
+                    steer_angle = -steer_angle
+                if linear_x < 0.0:
+                    spin_center_y = -spin_center_y
+                    steer_angle = -steer_angle
                 self.joint_state.position[0] = steer_angle
-        elif self.cmd_vel.linear.x == 0.0:
+        elif linear_x == 0.0:
             # TODO(lucasw) what to do here?
             # Could do nothing, but that doesn't reflect the intent of the cmd_vel
             # source - next best thing may be to set the steer angle to
@@ -105,8 +122,8 @@ class CmdVelToJoint():
 
             # if the robot was near an obstacle this strategy doesn't work at all
             # so need to be able to select it with a mode.
-            wheel_angular_velocity = self.cmd_vel.linear.y / self.wheel_radius
-            if self.cmd_vel.linear.y > 0:
+            wheel_angular_velocity = linear_y / self.wheel_radius
+            if linear_y > 0:
                 self.joint_state.position[0] = self.min_steer_angle
             else:
                 self.joint_state.position[0] = self.max_steer_angle
@@ -115,7 +132,7 @@ class CmdVelToJoint():
             # need to calculate the steer angle
             # the angle traveled around the spin center
             lin_y = self.cmd_vel.linear.y
-            lin_x = self.cmd_vel.linear.x
+            lin_x = linear_x
             lin_mag = math.sqrt(lin_x * lin_x + lin_y * lin_y)
             base_y = fixed_to_base.transform.translation.y
             base_x = fixed_to_base.transform.translation.x

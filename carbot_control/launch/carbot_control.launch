@@ -17,7 +17,7 @@
 
   <node pkg="teleop_twist_joy" type="teleop_node"
       name="teleop_twist_joy">
-    <rosparam command="load" file="$(find carbot_control)/config/xbox.config/yaml"/>
+    <rosparam command="load" file="$(find carbot_control)/config/xbox.config.yaml"/>
   </node>
   </group>
   <node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
