@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="use_joy" default="false" doc="use joystick input"/>
-  <arg name="use_rviz" default="false"/>
-  <arg name="use_command_to_joint" default="true" doc="if the gazebo simulation isn't running, and there is no encoder feedback being converted to joint states, generate joint states from their commands"/>
+  <arg name="use_rviz" default="true"/>
+  <arg name="use_command_to_joint_state" default="true" doc="if the gazebo simulation isn't running, and there is no encoder feedback being converted to joint states, generate joint states from their commands"/>
   <include file="$(find carbot_description)/launch/carbot_description.launch">
     <arg name="use_static_tf" value="false"/>
     <arg name="use_joint_gui" value="false"/>
@@ -34,8 +34,46 @@
 
   <!-- TODO(lucasw) instead of this, look at ros control boilerplate and make
       a controller that does the same thing -->
-  <!--node pkg="command_to_joint_state" type="command_to_joint_state.py"
-      name="command_to_joint_state" output="screen"
-      if="$(arg use_command_to_joint_state)">
-  </node-->
+  <group ns="carbot" if="$(arg use_command_to_joint_state)">
+    <group ns="front_right">
+    <node pkg="carbot_control" type="command_to_joint_state.py"
+        name="steer_command_to_joint_state" output="screen">
+      <param name="joint_name" value="front_right_steer_joint"/>
+      <remap from="command" to="steer_position_controller/command"/>
+    </node>
+    <node pkg="carbot_control" type="command_to_joint_state.py"
+        name="command_to_joint_state" output="screen">
+      <param name="joint_name" value="wheel_front_right_axle"/>
+      <remap from="command" to="wheel_position_controller/command"/>
+    </node>
+    </group>
+
+    <group ns="front_left">
+      <node pkg="carbot_control" type="command_to_joint_state.py"
+          name="steer_command_to_joint_state" output="screen">
+        <param name="joint_name" value="front_left_steer_joint"/>
+        <remap from="command" to="steer_position_controller/command"/>
+      </node>
+      <node pkg="carbot_control" type="command_to_joint_state.py"
+          name="command_to_joint_state" output="screen">
+        <param name="joint_name" value="wheel_front_left_axle"/>
+        <remap from="command" to="wheel_position_controller/command"/>
+      </node>
+    </group>
+
+    <group ns="back_right">
+      <node pkg="carbot_control" type="command_to_joint_state.py"
+          name="command_to_joint_state" output="screen">
+        <param name="joint_name" value="wheel_back_left_axle"/>
+        <remap from="command" to="wheel_position_controller/command"/>
+      </node>
+    </group>
+    <group ns="back_left">
+      <node pkg="carbot_control" type="command_to_joint_state.py"
+          name="command_to_joint_state" output="screen">
+        <param name="joint_name" value="wheel_back_right_axle"/>
+        <remap from="command" to="wheel_position_controller/command"/>
+      </node>
+    </group>
+  </group>
 </launch>

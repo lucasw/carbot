@@ -25,6 +25,14 @@ If it is the first time gazebo has launched, this may take a long time before yo
 
 and the model appears in rviz and gazebo.
 
+Gazebo frequently doesn't exit cleanly after pressing ctrl-c, you may have to kill the roscore and restart it to run again.
+
+If it does exit cleanly it is a good idea to:
+
+    rosparam delete /
+
+Or at least set sim_time to false.
+
 # commanding motion
 
 Any generator of cmd_vel messages can work here, though teleop twist keyboard and teleop joy are scaled inappropriately by default so need adjustment.

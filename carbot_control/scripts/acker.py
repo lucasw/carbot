@@ -16,7 +16,6 @@ from visualization_msgs.msg import Marker
 
 class Acker():
     def __init__(self):
-        rospy.init_node("acker")
         self.rate = rospy.get_param("~rate", 20.0)
         self.period = 1.0 / self.rate
 
@@ -30,24 +29,24 @@ class Acker():
         self.joints = rospy.get_param("~steered_joints",
                                        [{'link': 'front_left_steer',
                                          'steer_joint': 'front_left_steer_joint',
-                                         'steer_topic': '/carbot/front_left_steer_position_controller/command',
+                                         'steer_topic': '/carbot/front_left/steer_position_controller/command',
                                          'wheel_joint': 'wheel_front_left_axle',
-                                         'wheel_topic': '/carbot/wheel_front_left_position_controller/command'},
+                                         'wheel_topic': '/carbot/front_left/wheel_position_controller/command'},
                                         {'link': 'front_right_steer',
                                          'steer_joint': 'front_right_steer_joint',
-                                         'steer_topic': '/carbot/front_right_steer_position_controller/command',
+                                         'steer_topic': '/carbot/front_right/steer_position_controller/command',
                                          'wheel_joint': 'wheel_front_right_axle',
-                                         'wheel_topic': '/carbot/wheel_front_right_position_controller/command'},
+                                         'wheel_topic': '/carbot/front_right/wheel_position_controller/command'},
                                         {'link': 'back_left',
                                          'steer_joint': None,
                                          'steer_topic': None,
                                          'wheel_joint': 'wheel_back_left_axle',
-                                         'wheel_topic': '/carbot/wheel_back_left_position_controller/command'},
+                                         'wheel_topic': '/carbot/back_left/wheel_position_controller/command'},
                                         {'link': 'back_right',
                                          'steer_joint': None,
                                          'steer_topic': None,
                                          'wheel_joint': 'wheel_back_right_axle',
-                                         'wheel_topic': '/carbot/wheel_back_right_position_controller/command'}])
+                                         'wheel_topic': '/carbot/back_right/wheel_position_controller/command'}])
 
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
         # gazebo joint controller commands
@@ -329,5 +328,6 @@ class Acker():
             self.angle -= angle_traveled
 
 if __name__ == '__main__':
+    rospy.init_node("acker")
     acker = Acker()
     rospy.spin()

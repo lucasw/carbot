@@ -12,6 +12,10 @@
     <param name="use_gui" value="$(arg use_joint_gui)"/>
     <rosparam param="source_list">
       ["carbot/joint_states",
+       "carbot/front_right/joint_states",
+       "carbot/front_left/joint_states",
+       "carbot/back_left/joint_states",
+       "carbot/back_right/joint_states",
        "steer_joint_states"]
     </rosparam>
       <!-- these are controlled by gazebo now, but TODO(lucasw) need a non-gazebo
