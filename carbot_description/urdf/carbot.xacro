@@ -75,20 +75,11 @@
   </link>
 </xacro:macro>
 
-<!-- TODO(lucasw) make a wheel xacro to get common code out of
-    fixed_wheel and steered_wheel -->
-<xacro:macro name="fixed_wheel" params="name parent y">
-  <xacro:block name="${name}" length="${car_width/8.0}"
-      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
-  <joint name="${name}_axle" type="fixed">
-    <parent link="${parent}"/>
-    <child link="${name}"/>
-    <origin xyz="0 ${y} 0" rpy="0 0 0"/>
-  </joint>
+<xacro:macro name="generic_wheel" params="name parent radius width">
 
   <xacro:wheel name="wheel_${name}" width="${wheel_width}" radius="${wheel_radius}" mass="0.2"/>
   <joint name="wheel_${name}_axle" type="continuous">
-    <parent link="${name}"/>
+    <parent link="${parent}"/>
     <child link="wheel_${name}"/>
     <origin xyz="0 0 ${-car_height/4}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
@@ -122,6 +113,22 @@
     <kp value="10000000.0"/>
     <kd value="1.0"/>
   </gazebo>
+
+</xacro:macro>  <!-- generic wheel -->
+
+<!-- TODO(lucasw) make a wheel xacro to get common code out of
+    fixed_wheel and steered_wheel -->
+<xacro:macro name="fixed_wheel" params="name parent y">
+  <xacro:block name="${name}" length="${car_width/8.0}"
+      width="${car_width/8.0}" height="${car_width/8.0}" mass="0.1"/>
+  <joint name="${name}_axle" type="fixed">
+    <parent link="${parent}"/>
+    <child link="${name}"/>
+    <origin xyz="0 ${y} 0" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:generic_wheel name="${name}" parent="${name}"
+      radius="${wheel_radius}" width="${wheel_width}"/>
 </xacro:macro>
 
 <xacro:macro name="steered_wheel" params="name parent y">
@@ -146,26 +153,8 @@
     </actuator>
   </transmission>
 
-  <xacro:wheel name="wheel_${name}" width="${wheel_width}" radius="0.2" mass="1.0"/>
-  <joint name="wheel_${name}_axle" type="continuous">
-    <parent link="${name}_steer"/>
-    <child link="wheel_${name}"/>
-    <origin xyz="0 0 ${-car_height/4}" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="1000.0" velocity="0.5"/>
-  </joint>
-
-  <!-- TODO(lucasw) make front wheel drive optional -->
-  <transmission name="${name}_tran">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wheel_${name}_axle">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="wheel_${name}_motor">
-      <hardwareInterface>EffortJointInterface</hardwareInterface>
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
+  <xacro:generic_wheel name="${name}" parent="${name}_steer"
+      radius="${wheel_radius}" width="${wheel_width}"/>
 </xacro:macro>
 
   <link name="base_link"/>
