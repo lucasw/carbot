@@ -4,7 +4,8 @@
 <xacro:property name="car_length" value="1.4"/>
 <xacro:property name="car_width" value="1.0"/>
 <xacro:property name="car_height" value="0.3"/>
-<xacro:property name="wheel_width" value="0.2"/>
+<xacro:property name="wheel_width" value="0.15"/>
+<xacro:property name="wheel_radius" value="0.2"/>
 <!-- TODO(lwalter) pass these in as args -->
 <!-- turning to left -->
 <xacro:property name="min_steer" value="-0.7"/>
@@ -16,7 +17,7 @@
 <!-- don't use macro names that are the same as other key names
   like 'box', 'cylinder', etc. otherwise get Invalid parameter "size"
 -->
-<xacro:macro name="block" params="name length width height mass">
+<xacro:macro name="block" params="name length width height mass r:=0.5 b:=0.5 g:=0.5">
   <link name="${name}">
      <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -24,7 +25,7 @@
         <box size="${length} ${width} ${height}"/>
       </geometry>
       <material name="${name}_gray">
-        <color rgba="0.5 0.5 0.5 1"/>
+        <color rgba="${r} ${g} ${b} 1"/>
       </material>
     </visual>
     <collision>
@@ -46,12 +47,12 @@
 
 <!-- a wheel that rotates around the y axis, rolls forward toward the x axis -->
 <!--origin xyz="${length/2} ${width/2} ${height/2}" /-->
-<xacro:macro name="wheel" params="name width height mass">
+<xacro:macro name="wheel" params="name width radius mass">
   <link name="${name}">
     <visual>
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
       <geometry>
-        <cylinder length="${width}" radius="${height/2}"/>
+        <cylinder length="${width}" radius="${radius}"/>
       </geometry>
       <material name="${name}_black">
         <color rgba="0.2 0.2 0.2 1"/>
@@ -60,16 +61,16 @@
     <collision>
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
       <geometry>
-        <cylinder length="${width}" radius="${height/2}"/>
+        <cylinder length="${width}" radius="${radius}"/>
       </geometry>
     </collision>
     <inertial>
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
       <mass value="${mass}"/>
       <inertia
-          ixx="${mass / 12.0 * (3/4 * height * height + width * width)}" ixy="0.0" ixz="0.0"
-          iyy="${mass / 12.0 * (3/4 * height * height + width * width)}" iyz="0.0"
-          izz="${mass / 12.0 * (3/4 * height * height + width * width)}"/>
+          ixx="${mass / 12.0 * (3 * radius * radius + width * width)}" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (3 * radius * radius + width * width)}" iyz="0.0"
+          izz="${mass / 2.0 * (radius * radius)}"/>
     </inertial>
   </link>
 </xacro:macro>
@@ -85,13 +86,23 @@
     <origin xyz="0 ${y} 0" rpy="0 0 0"/>
   </joint>
 
-  <xacro:wheel name="wheel_${name}" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <xacro:wheel name="wheel_${name}" width="${wheel_width}" radius="${wheel_radius}" mass="0.2"/>
   <joint name="wheel_${name}_axle" type="continuous">
     <parent link="${name}"/>
     <child link="wheel_${name}"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 ${-car_height/4}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="100.0" velocity="0.5"/>
+  </joint>
+
+  <!-- indicate whether the wheel is spinning -->
+  <xacro:block name="wheel_${name}_hubcap" length="${1.6 * wheel_radius}"
+      width="${1.1 * wheel_width}" height="${0.2 * wheel_width}" mass="0.1"
+      r="0.95" g="0.95" b="0.95"/>
+  <joint name="wheel_${name}_hubcap_joint" type="fixed">
+    <parent link="wheel_${name}"/>
+    <child link="wheel_${name}_hubcap"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
   <transmission name="${name}_tran">
@@ -135,11 +146,11 @@
     </actuator>
   </transmission>
 
-  <xacro:wheel name="wheel_${name}" width="${wheel_width}" height="0.4" mass="0.2"/>
+  <xacro:wheel name="wheel_${name}" width="${wheel_width}" radius="0.2" mass="1.0"/>
   <joint name="wheel_${name}_axle" type="continuous">
     <parent link="${name}_steer"/>
     <child link="wheel_${name}"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 ${-car_height/4}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit effort="1000.0" velocity="0.5"/>
   </joint>
@@ -178,12 +189,12 @@
     <limit effort="1000.0" upper="${max_steer}" lower="${min_steer}" velocity="0.5"/>
   </joint>
 
-  <xacro:block name="test_link" length="${car_length/2.0}"
-      width="${car_width}" height="${car_height}" mass="0.5"/>
+  <xacro:block name="top_link" length="${car_length/2.0}"
+      width="${0.8 * car_width}" height="${0.9 * car_height}" mass="0.5"/>
   <joint name="test_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="test_link"/>
-    <origin xyz="0.1 0 ${car_height}" rpy="0 0 0"/>
+    <child link="top_link"/>
+    <origin xyz="-0.1 0 ${car_height * 0.7}" rpy="0 0 0"/>
   </joint>
 
   <!-- every link has to have inertia in order for it to work in gazebo
@@ -195,7 +206,7 @@
   <joint name="front_axle_joint" type="fixed">
     <parent link="base_link"/>
     <child link="front_axle"/>
-    <origin xyz="${car_length/2 - 0.05} 0 0" rpy="0 0 0"/>
+    <origin xyz="${car_length/2 - 0.1} 0 0" rpy="0 0 0"/>
   </joint>
 
   <!-- this is the virtual joint that represents the front of the bicycle
@@ -236,12 +247,32 @@
   <joint name="back_axle_joint" type="fixed">
     <parent link="base_link"/>
     <child link="back_axle"/>
-    <origin xyz="${-car_length/2 + 0.05} 0 0" rpy="0 0 0"/>
+    <origin xyz="${-car_length/2 + 0.1} 0 0" rpy="0 0 0"/>
   </joint>
 
   <xacro:fixed_wheel name="back_left" parent="back_axle"
       y="${car_width/2 + wheel_width/2 + 0.1}"/>
   <xacro:fixed_wheel name="back_right" parent="back_axle"
       y="${-1 * (car_width/2 + wheel_width/2 + 0.1)}"/>
+
+  <!-- sensors -->
+  <xacro:block name="camera_link" length="0.05"
+      width="0.04" height="0.03" mass="0.1"/>
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.1 0 0.5" rpy="0 0.15 0"/>
+  </joint>
+
+  <link name="camera_link_optical"/>
+  <!-- generate an optical frame http://www.ros.org/reps/rep-0103.html#suffix-frames
+      so that ros and opencv can operate on the camera frame correctly -->
+  <joint name="camera_optical_joint" type="fixed">
+    <!-- these values have to be these values otherwise the gazebo camera image
+        won't be aligned properly with the frame it is supposedly originating from -->
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <parent link="camera_link"/>
+    <child link="camera_link_optical"/>
+  </joint>
 
 </robot>
