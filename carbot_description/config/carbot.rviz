@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1/Frames1
-        - /RobotModel1
         - /RobotModel1/Links1
         - /Image1
         - /Axes1
@@ -53,90 +52,19 @@ Visualization Manager:
       Reference Frame: map
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        back_axle:
-          Value: true
-        back_left:
-          Value: true
-        back_right:
-          Value: true
-        base_link:
-          Value: true
-        base_steer:
-          Value: true
-        camera_link:
-          Value: true
-        camera_link_optical:
-          Value: true
-        chassis_link:
-          Value: true
-        front_axle:
-          Value: true
-        front_left_steer:
-          Value: true
-        front_right_steer:
-          Value: true
-        lead_steer:
-          Value: true
-        map:
-          Value: true
-        top_link:
-          Value: true
-        wheel_back_left:
-          Value: true
-        wheel_back_left_hubcap:
-          Value: true
-        wheel_back_right:
-          Value: true
-        wheel_back_right_hubcap:
-          Value: true
-        wheel_front_left:
-          Value: true
-        wheel_front_right:
-          Value: true
-        wheel_lead:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          base_link:
-            back_axle:
-              back_left:
-                wheel_back_left:
-                  wheel_back_left_hubcap:
-                    {}
-              back_right:
-                wheel_back_right:
-                  wheel_back_right_hubcap:
-                    {}
-            base_steer:
-              {}
-            camera_link:
-              camera_link_optical:
-                {}
-            chassis_link:
-              {}
-            front_axle:
-              front_left_steer:
-                wheel_front_left:
-                  {}
-              front_right_steer:
-                wheel_front_right:
-                  {}
-              lead_steer:
-                wheel_lead:
-                  {}
-            top_link:
-              {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: true
@@ -233,7 +161,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        wheel_front_left_hubcap:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         wheel_front_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_front_right_hubcap:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -294,7 +232,7 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
-        "": true
+        Axes: true
         Grid: true
         Image: true
         PointStamped: true
@@ -347,22 +285,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.60681903
+      Distance: 5.52879858
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.286068797
-        Y: -0.678217947
-        Z: 0.117651179
+        X: -0.370979607
+        Y: -0.354086548
+        Z: -0.386208355
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.254796803
+      Pitch: 0.31979689
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.21357965
+      Yaw: 0.690393925
     Saved: ~
 Window Geometry:
   Camera:
@@ -384,5 +322,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 861
-  X: 601
-  Y: 92
+  X: 596
+  Y: 50
