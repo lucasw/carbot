@@ -3,6 +3,7 @@
   <arg name="use_rviz" default="false"/>
   <arg name="use_joint_gui" default="true"/>
   <arg name="use_static_tf" default="true"/>
+  <arg name="use_robot_pub" default="true"/>
 
   <param name="robot_description"
     command="$(find xacro)/xacro --inorder '$(find carbot_description)/urdf/carbot.xacro'"/>
@@ -25,7 +26,8 @@
   </node>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher"
-      type="robot_state_publisher"/>
+      type="robot_state_publisher"
+      if="$(arg use_robot_pub)"/>
 
   <node name="rviz" pkg="rviz" type="rviz"
       if="$(arg use_rviz)"

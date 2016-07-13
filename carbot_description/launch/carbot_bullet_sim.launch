@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="use_rviz" default="true"/>
+  <include file="$(find carbot_description)/launch/carbot_description.launch">
+    <arg name="use_static_tf" value="false"/>
+    <arg name="use_robot_pub" value="false"/>
+    <arg name="use_joint_gui" value="false"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+
+  <include file="$(find bullet_server)/launch/bullet_server.launch">
+    <arg name="use_rviz" value="$(arg use_rviz)"/>
+  </include>
+
+  <!--
+  <node name="load_urdf" pkg="bullet_server" type="load_urdf.py">
+  </node>
+  -->
+</launch>
