@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="use_joy" default="false" doc="use joystick/gamepad"/>
+  <arg name="use_rviz" default="true"/>
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
@@ -20,7 +21,7 @@
 
   <!-- Load the URDF into the ROS Parameter Server -->
   <include file="$(find carbot_control)/launch/carbot_control.launch">
-    <arg name="use_rviz" value="true"/>
+    <arg name="use_rviz" value="$(arg use_rviz)"/>
     <arg name="use_joy" value="$(arg use_joy)"/>
     <arg name="use_command_to_joint_state" value="false"/>
   </include>

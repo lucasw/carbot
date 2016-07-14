@@ -67,10 +67,18 @@ class CmdVelToJoint():
         #     return
 
         # get the transform from the back axle to the steer link
-        fixed_to_steer = self.tf_buffer.lookup_transform(self.fixed_axle_link,
-                                                         self.steer_link,
-                                                         rospy.Time(),
-                                                         rospy.Duration(4.0))
+        try:
+            fixed_to_steer = self.tf_buffer.lookup_transform(self.fixed_axle_link,
+                                                             self.steer_link,
+                                                             rospy.Time(),
+                                                             rospy.Duration(4.0))
+        except tf2.ExtrapolationException as e:
+            rospy.logwarn(e)
+            return
+        except tf2.LookupException as e:
+            rospy.logwarn(e)
+            return
+
         self.joint_state.header.stamp = fixed_to_steer.header.stamp
 
         # TODO(lucasw) use same time as fixed_to_steer above
