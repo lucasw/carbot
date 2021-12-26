@@ -2,7 +2,7 @@
 <package>
   <name>carbot_description</name>
   <version>0.0.0</version>
-  <description>The carbot_description package</description>
+  <description>urdf and sim launch files for the carbot</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -40,9 +40,12 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>bullet_server</run_depend>
   <run_depend>joint_state_publisher</run_depend>
   <run_depend>robot_state_publisher</run_depend>
   <run_depend>rviz</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>xacro</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

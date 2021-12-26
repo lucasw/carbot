@@ -2,7 +2,7 @@
 <package>
   <name>carbot_control</name>
   <version>0.0.0</version>
-  <description>The carbot_control package</description>
+  <description>Control the carbot</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -42,8 +42,12 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
+  <run_depend>carbot_description</run_depend>
+  <run_depend>joy</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>teleop_twist_joy</run_depend>
+  <run_depend>teleop_twist_keyboard</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

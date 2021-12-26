@@ -2,7 +2,7 @@
 <package>
   <name>carbot_gazebo_control</name>
   <version>0.0.0</version>
-  <description>The carbot_gazebo_control package</description>
+  <description>Control the carbot in gazebo</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -40,7 +40,8 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-
+  <run_depend>carbot_gazebo</run_depend>
+  <run_depend>controller_manager</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

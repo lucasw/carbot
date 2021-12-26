@@ -2,7 +2,7 @@
 <package>
   <name>carbot_gazebo</name>
   <version>0.0.0</version>
-  <description>The carbot_gazebo package</description>
+  <description>gazebo config files for carbot</description>
 
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="wsacul@gmail.com">Lucas Walter</maintainer>
@@ -39,9 +39,9 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>carbot_control</run_depend>
   <run_depend>gazebo_plugins</run_depend>
   <run_depend>gazebo_ros</run_depend>
-  <run_depend>gazebo_control</run_depend>
   <run_depend>carbot_description</run_depend>
   <run_depend>xacro</run_depend>
 
