@@ -108,8 +108,8 @@ class CmdVelToJoint():
                 # base_turn_radius * sin(fixed_to_base_angle) = fixed_to_base.transform.translation.x
                 try:
                     fixed_to_base_angle = math.asin(fixed_to_base.transform.translation.x / base_turn_radius)
-                except:
-                    print base_turn_radius, fixed_to_base.transform.translation.x
+                except Exception as ex:
+                    rospy.logwarn(f"{base_turn_radius}, {fixed_to_base.transform.translation.x}, {ex}")
                     return
                 # spin center relative to fixed axle
                 spin_center_y = base_turn_radius * math.cos(fixed_to_base_angle)
@@ -188,6 +188,7 @@ class CmdVelToJoint():
         self.joint_state.velocity[1] = wheel_angular_velocity
 
         self.steer_pub.publish(self.joint_state)
+
 
 if __name__ == '__main__':
     rospy.init_node("cmd_vel_to_joint")

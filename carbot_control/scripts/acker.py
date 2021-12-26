@@ -27,26 +27,26 @@ class Acker():
         # TODO(lucasw) need to know per wheel radius to compute velocity
         # correctly, for now assume all wheels are same radius
         self.joints = rospy.get_param("~steered_joints",
-                                       [{'link': 'front_left_steer',
-                                         'steer_joint': 'front_left_steer_joint',
-                                         'steer_topic': '/carbot/front_left/steer_position_controller/command',
-                                         'wheel_joint': 'wheel_front_left_axle',
-                                         'wheel_topic': '/carbot/front_left/wheel_position_controller/command'},
-                                        {'link': 'front_right_steer',
-                                         'steer_joint': 'front_right_steer_joint',
-                                         'steer_topic': '/carbot/front_right/steer_position_controller/command',
-                                         'wheel_joint': 'wheel_front_right_axle',
-                                         'wheel_topic': '/carbot/front_right/wheel_position_controller/command'},
-                                        {'link': 'back_left',
-                                         'steer_joint': None,
-                                         'steer_topic': None,
-                                         'wheel_joint': 'wheel_back_left_axle',
-                                         'wheel_topic': '/carbot/back_left/wheel_position_controller/command'},
-                                        {'link': 'back_right',
-                                         'steer_joint': None,
-                                         'steer_topic': None,
-                                         'wheel_joint': 'wheel_back_right_axle',
-                                         'wheel_topic': '/carbot/back_right/wheel_position_controller/command'}])
+                                      [{'link': 'front_left_steer',
+                                        'steer_joint': 'front_left_steer_joint',
+                                        'steer_topic': '/carbot/front_left/steer_position_controller/command',
+                                        'wheel_joint': 'wheel_front_left_axle',
+                                        'wheel_topic': '/carbot/front_left/wheel_position_controller/command'},
+                                       {'link': 'front_right_steer',
+                                        'steer_joint': 'front_right_steer_joint',
+                                        'steer_topic': '/carbot/front_right/steer_position_controller/command',
+                                        'wheel_joint': 'wheel_front_right_axle',
+                                        'wheel_topic': '/carbot/front_right/wheel_position_controller/command'},
+                                       {'link': 'back_left',
+                                        'steer_joint': None,
+                                        'steer_topic': None,
+                                        'wheel_joint': 'wheel_back_left_axle',
+                                        'wheel_topic': '/carbot/back_left/wheel_position_controller/command'},
+                                       {'link': 'back_right',
+                                        'steer_joint': None,
+                                        'steer_topic': None,
+                                        'wheel_joint': 'wheel_back_right_axle',
+                                        'wheel_topic': '/carbot/back_right/wheel_position_controller/command'}])
 
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.15)
         # gazebo joint controller commands
@@ -286,7 +286,7 @@ class Acker():
         # TODO(lucasw) need a steer joint at the base_link and set it
         # to this angle
         steer_angle, radius = self.get_angle("base_link", spin_center,
-                                       steer_angle, msg.header.stamp)
+                                             steer_angle, msg.header.stamp)
         fr = radius / lead_radius
         # distance traveled along the radial path in base_link
         distance = self.wheel_radius * lead_wheel_angular_velocity * fr * dt
@@ -326,6 +326,7 @@ class Acker():
             self.angle += angle_traveled
         else:
             self.angle -= angle_traveled
+
 
 if __name__ == '__main__':
     rospy.init_node("acker")

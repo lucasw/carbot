@@ -6,8 +6,12 @@ project(carbot_control)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslint
   rospy
 )
+
+set(ROSLINT_PYTHON_OPTS "--ignore=''" "1>&2")
+roslint_python()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

@@ -25,6 +25,7 @@ class CommandToJointState:
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_pub.publish(self.joint_state)
 
+
 if __name__ == '__main__':
     rospy.init_node('command_to_joint_state')
     command_to_joint_state = CommandToJointState()
